@@ -1,0 +1,5 @@
+Flask=2.0.3
+Flask-Cors=3.0.10
+flask-marshmallow=0.14.0
+Flask-SQLAlchemy=2.5.1
+git clone https://github.com/ultralytics/yolov5
