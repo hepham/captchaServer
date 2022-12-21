@@ -14,7 +14,7 @@ from flask import request
 import numpy as np
 import cv2
 import torch
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'model.pt')
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'best.onnx')
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 
@@ -90,7 +90,7 @@ def get_all_service():
 def change_key():
     if request.method == 'POST':
         data = request.json
-        print(data)
+        # print(data)
         user = Users.query.filter_by(merchant_key=data['merchant_key']).first()
         # print(user.password)
         if user:
@@ -163,13 +163,13 @@ def predict():
             buf = io.BytesIO(imagedata)
             image=Image.open(buf)
             image = image.resize((640, 640))
-            print(image.size)
+            # print(image.size)
             # image=image.resize(640,640)
             # cv2.imshow('image', image)
             # cv2.waitKey(0)
             # cv2.destroyAllWindows()
             results = model(image)
-            results.print()  # or .show(), .save()
+            # results.print()  # or .show(), .save()
             results.xyxy[0]  # im predictions (tensor)
             # print(results.pandas().xyxy[0])  # im predictions (pandas)
             xmin = 0;
@@ -202,7 +202,7 @@ def predict():
                             str = str + '$'
                         else:
                             str = str + results.pandas().xyxy[0].name[j]
-            print("str: "+str)
+            # print("str: "+str)
             strcompare = ''
             ymax = 360
             array = []
@@ -283,7 +283,7 @@ def predict():
                             strcompare = strcompare + '$'
                         else:
                             strcompare = strcompare + results.pandas().xyxy[0].name[j]
-            print("strcompare: "+strcompare)
+            # print("strcompare: "+strcompare)
         
             i = 0
 
@@ -295,7 +295,7 @@ def predict():
                     i = i + 1
 
             result = ''.join([i for i in str if i.isdigit()])
-            print("result: "+ result)
+            # print("result: "+ result)
             return result
         return jsonify({"message": "your captcha is out"}), 200
     return jsonify({"message": "can't found user"}), 200
