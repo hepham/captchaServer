@@ -185,24 +185,24 @@ def predict():
             for i in range(len(array)):
                 for j in range(len(results.pandas().xyxy[0].name)):
                     if array[i] == results.pandas().xyxy[0].xmin[j]:
-                        if (results.pandas().xyxy[0].name[j] == 'a1'):
+                        if (results.pandas().xyxy[0].name[j] == 'and'):
                             results.pandas().xyxy[0].name[j] = '&'
                             str = str + '&'
-                        elif (results.pandas().xyxy[0].name[j] == 'a2'):
+                        elif (results.pandas().xyxy[0].name[j] == 'acong'):
                             results.pandas().xyxy[0].name[j] = '@'
                             str = str + '@'
-                        elif (results.pandas().xyxy[0].name[j] == 'a3'):
+                        elif (results.pandas().xyxy[0].name[j] == 'thang'):
                             results.pandas().xyxy[0].name[j] = '#'
                             str = str + '#'
-                        elif (results.pandas().xyxy[0].name[j] == 'a4'):
+                        elif (results.pandas().xyxy[0].name[j] == 'per'):
                             results.pandas().xyxy[0].name[j] = '%'
                             str = str + '%'
-                        elif (results.pandas().xyxy[0].name[j] == 'a5'):
+                        elif (results.pandas().xyxy[0].name[j] == 'dolar'):
                             results.pandas().xyxy[0].name[j] = '$'
                             str = str + '$'
                         else:
                             str = str + results.pandas().xyxy[0].name[j]
-            # print(str)
+            print("str: "+str)
             strcompare = ''
             ymax = 360
             array = []
@@ -213,19 +213,19 @@ def predict():
             for i in range(len(array)):
                 for j in range(len(results.pandas().xyxy[0].name)):
                     if array[i] == results.pandas().xyxy[0].xmin[j]:
-                        if (results.pandas().xyxy[0].name[j] == 'a1'):
+                        if (results.pandas().xyxy[0].name[j] == 'and'):
                             results.pandas().xyxy[0].name[j] = '&'
                             strcompare = strcompare + '&'
-                        elif (results.pandas().xyxy[0].name[j] == 'a2'):
+                        elif (results.pandas().xyxy[0].name[j] == 'acong'):
                             results.pandas().xyxy[0].name[j] = '@'
                             strcompare = strcompare + '@'
-                        elif (results.pandas().xyxy[0].name[j] == 'a3'):
+                        elif (results.pandas().xyxy[0].name[j] == 'thang'):
                             results.pandas().xyxy[0].name[j] = '#'
                             strcompare = strcompare + '#'
-                        elif (results.pandas().xyxy[0].name[j] == 'a4'):
+                        elif (results.pandas().xyxy[0].name[j] == 'per'):
                             results.pandas().xyxy[0].name[j] = '%'
                             strcompare = strcompare + '%'
-                        elif (results.pandas().xyxy[0].name[j] == 'a5'):
+                        elif (results.pandas().xyxy[0].name[j] == 'dolar'):
                             results.pandas().xyxy[0].name[j] = '$'
                             strcompare = strcompare + '$'
                         else:
@@ -240,19 +240,19 @@ def predict():
             for i in range(len(array)):
                 for j in range(len(results.pandas().xyxy[0].name)):
                     if array[i] == results.pandas().xyxy[0].xmin[j]:
-                        if (results.pandas().xyxy[0].name[j] == 'a1'):
+                        if (results.pandas().xyxy[0].name[j] == 'and'):
                             results.pandas().xyxy[0].name[j] = '&'
                             strcompare = strcompare + '&'
-                        elif (results.pandas().xyxy[0].name[j] == 'a2'):
+                        elif (results.pandas().xyxy[0].name[j] == 'acong'):
                             results.pandas().xyxy[0].name[j] = '@'
                             strcompare = strcompare + '@'
-                        elif (results.pandas().xyxy[0].name[j] == 'a3'):
+                        elif (results.pandas().xyxy[0].name[j] == 'thang'):
                             results.pandas().xyxy[0].name[j] = '#'
                             strcompare = strcompare + '#'
-                        elif (results.pandas().xyxy[0].name[j] == 'a4'):
+                        elif (results.pandas().xyxy[0].name[j] == 'per'):
                             results.pandas().xyxy[0].name[j] = '%'
                             strcompare = strcompare + '%'
-                        elif (results.pandas().xyxy[0].name[j] == 'a5'):
+                        elif (results.pandas().xyxy[0].name[j] == 'dolar'):
                             results.pandas().xyxy[0].name[j] = '$'
                             strcompare = strcompare + '$'
                         else:
@@ -266,24 +266,25 @@ def predict():
             for i in range(len(array)):
                 for j in range(len(results.pandas().xyxy[0].name)):
                     if array[i] == results.pandas().xyxy[0].xmin[j]:
-                        if (results.pandas().xyxy[0].name[j] == 'a1'):
+                        if (results.pandas().xyxy[0].name[j] == 'and'):
                             results.pandas().xyxy[0].name[j] = '&'
                             strcompare = strcompare + '&'
-                        elif (results.pandas().xyxy[0].name[j] == 'a2'):
+                        elif (results.pandas().xyxy[0].name[j] == 'acong'):
                             results.pandas().xyxy[0].name[j] = '@'
                             strcompare = strcompare + '@'
-                        elif (results.pandas().xyxy[0].name[j] == 'a3'):
+                        elif (results.pandas().xyxy[0].name[j] == 'thang'):
                             results.pandas().xyxy[0].name[j] = '#'
                             strcompare = strcompare + '#'
-                        elif (results.pandas().xyxy[0].name[j] == 'a4'):
+                        elif (results.pandas().xyxy[0].name[j] == 'per'):
                             results.pandas().xyxy[0].name[j] = '%'
                             strcompare = strcompare + '%'
-                        elif (results.pandas().xyxy[0].name[j] == 'a5'):
+                        elif (results.pandas().xyxy[0].name[j] == 'dolar'):
                             results.pandas().xyxy[0].name[j] = '$'
                             strcompare = strcompare + '$'
                         else:
                             strcompare = strcompare + results.pandas().xyxy[0].name[j]
-            # print(strcompare)
+            print("strcompare: "+strcompare)
+        
             i = 0
 
             while i < len(strcompare) - 1:
@@ -294,7 +295,7 @@ def predict():
                     i = i + 1
 
             result = ''.join([i for i in str if i.isdigit()])
-            print(result)
+            print("result: "+ result)
             return result
         return jsonify({"message": "your captcha is out"}), 200
     return jsonify({"message": "can't found user"}), 200
