@@ -14,7 +14,7 @@ from flask import request
 import numpy as np
 import cv2
 import torch
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'best.onnx')
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'best.pt')
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 
@@ -202,7 +202,7 @@ def predict():
                             str = str + '$'
                         else:
                             str = str + results.pandas().xyxy[0].name[j]
-            # print("str: "+str)
+            print("str: "+str)
             strcompare = ''
             ymax = 360
             array = []
@@ -283,7 +283,7 @@ def predict():
                             strcompare = strcompare + '$'
                         else:
                             strcompare = strcompare + results.pandas().xyxy[0].name[j]
-            # print("strcompare: "+strcompare)
+            print("strcompare: "+strcompare)
         
             i = 0
 
@@ -295,7 +295,7 @@ def predict():
                     i = i + 1
 
             result = ''.join([i for i in str if i.isdigit()])
-            # print("result: "+ result)
+            print("result: "+ result)
             return result
         return jsonify({"message": "your captcha is out"}), 200
     return jsonify({"message": "can't found user"}), 200
