@@ -9,8 +9,8 @@ def is_user_name_taken(email):
 
 
 class Users(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    fullName = db.Column(db.String)
+    id = db.Column(db.Integer,autoincrement =True, primary_key=True)
+    fullName = db.Column(db.String(100),nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
     merchant_key = db.Column(db.String)

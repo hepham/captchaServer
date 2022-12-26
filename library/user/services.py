@@ -140,9 +140,7 @@ def chuyen_base64_sang_anh(anh_base64):
     except:
         return None
     return anh_base64
-# @app.route('/',methods=['GET'])
-# def hello_world():  # put application's code here
-#     return render_template('index.html')
+
 
 def predict():
     # imagefile= request.files['imagefile']
