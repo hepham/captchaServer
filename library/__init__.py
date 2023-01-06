@@ -13,24 +13,25 @@ def create_db(app):
     #     db.create_all(app=app)
     #     print("Created DB!")
     mydb=mysql.connector.connect(
-        host="localhost",
-        user="root",
-        passwd="123456789",
-        database="captcha"
+        host="35.188.163.55",
+        user="ecaptcha",
+        passwd="Vietanhnd1909",
+        database="captcha_web"
     )
+    
     my_cursor=mydb.cursor()
-    my_cursor.execute("CREATE DATABASE IF NOT EXISTS captcha")
+    # my_cursor.execute("CREATE DATABASE IF NOT EXISTS captcha_web")
     my_cursor.execute("SHOW DATABASES")
     for db in my_cursor:
-        print(db)
-    my_cursor.execute("CREATE TABLE IF NOT EXISTS USERS(\
-        id int NOT NULL AUTO_INCREMENT primary key,\
-        fullname varchar(100) not null,\
-        email varchar(100) not null unique,\
-        password varchar(100) not null, \
-        merchant_key varchar(100) not null,\
-        count_captcha int default 0\
-        )")
+        print(db) 
+    # my_cursor.execute("CREATE TABLE IF NOT EXISTS USERS(\
+    #     id int NOT NULL AUTO_INCREMENT primary key,\
+    #     fullname varchar(100) not null,\
+    #     email varchar(100) not null unique,\
+    #     password varchar(100) not null, \
+    #     merchant_key varchar(100) not null,\
+    #     count_captcha int default 0\
+    #     )")
 
 def create_app(config_file="config.py"):
     app = Flask(__name__)

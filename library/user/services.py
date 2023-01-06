@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from flask import  jsonify
-
+from sqlalchemy.ext.declarative import declarative_base
 from library.encrypt import random_string, encrypt
 from library.extension import db
 from library.library_ma import UserSchema
@@ -294,6 +294,22 @@ def predict():
 
             result = ''.join([i for i in str if i.isdigit()])
             print("result: "+ result)
-            return result
+            return jsonify({"message": "sucess",
+                            "predictions":{
+                                "captcha":result,
+                                "confidence":"oke",
+                                "OriginCaptcha":{
+                                    "hint_1":"x_x",
+                                    "hint_2":"x_x",
+                                    "hint_3":"x_x",
+                                    "hint_4":"x_x",
+                                    "hint_5":"x_x",
+                                    "main":"xxxxx"
+                                },
+                                "time":1
+                                },
+                            "success":True
+                            }
+                           ), 200
         return jsonify({"message": "your captcha is out"}), 200
     return jsonify({"message": "can't found user"}), 200
