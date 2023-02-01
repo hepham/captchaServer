@@ -13,9 +13,9 @@ def create_db(app):
     #     db.create_all(app=app)
     #     print("Created DB!")
     mydb=mysql.connector.connect(
-        host="35.188.163.55",
+        host="103.200.21.254",
         user="ecaptcha",
-        passwd="Vietanhnd1909",
+        passwd="vietanhnd1909",
         database="captcha_web"
     )
     
@@ -36,6 +36,7 @@ def create_db(app):
 def create_app(config_file="config.py"):
     app = Flask(__name__)
     CORS(app)
+    
     db.init_app(app)
     ma.init_app(app)
     app.config.from_pyfile(config_file)
