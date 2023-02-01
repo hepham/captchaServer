@@ -14,10 +14,13 @@ from flask import request
 import numpy as np
 import cv2
 import torch
+import datetime
 model = torch.hub.load('ultralytics/yolov5', 'custom', 'best.pt')
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
-import datetime;
+saveResult={}
+saveIndex={}
+
 
 # Sign Up
 
@@ -150,165 +153,194 @@ def predict():
     start=time.time()
     captchaImage=request.form.get('captcha')
     key=request.form.get('merchant_key')
-    user = Users.query.filter_by(merchant_key=key).first()
-    # #print(user.password)
-    if user:
-        if user.count_captcha>0:
-            user.count_captcha=user.count_captcha-1;
-            db.session.commit()
-            end=time.time()
-            print("delta time",end-start)
-            imagedata = base64.b64decode(captchaImage)
-            buf = io.BytesIO(imagedata)
-            image=Image.open(buf)
-            image = image.resize((640, 640))
-            results = model(image)
-            end=time.time()
-            print("deltatime 176:",end-start)
-            xmin = 0;
-            ymin = 10;
-            ymax = 200;
-            count = 0;
-            array = []
-            strcompare = ''
-            ymax1 = 360
-            array1 = []
-            ymax2 = 450
-            ymax3 = 530
-            array2 = []
-            array3 = []
-            # start=time.time()
-            t=results.pandas();
-            print("pandas",time.time()-start)
-            for j in range(len(t.xyxy[0].name)):
-                if (t.xyxy[0].name[j] == 'and'):
-                    t.xyxy[0].name[j] = '&'
-                elif (t.xyxy[0].name[j] == 'acong'):
-                    t.xyxy[0].name[j] = '@'
-                elif (t.xyxy[0].name[j] == 'thang'):
-                    t.xyxy[0].name[j] = '#'
-                elif (t.xyxy[0].name[j] == 'per'):
-                    t.xyxy[0].name[j] = '%'
-                elif (t.xyxy[0].name[j] == 'dolar'):
-                    t.xyxy[0].name[j] = '$'
-                # print("result:",t.xyxy[0].name[j])    
-            end=time.time()
-            print("deltatime 205:",end-start)
-            for i in range(len(t.xyxy[0].name)):
-                if t.xyxy[0].ymin[i] < ymax:
-                    array.append(t.xyxy[0].xmin[i])
-                elif t.xyxy[0].ymin[i] < ymax1 and t.xyxy[0].ymin[i] > 250:
-                    array1.append(t.xyxy[0].xmin[i])
-                elif t.xyxy[0].ymin[i] < ymax2 and t.xyxy[0].ymin[i] > 370:
-                    array2.append(t.xyxy[0].xmin[i])
-                elif t.xyxy[0].ymin[i] < ymax3 and t.xyxy[0].ymin[i] > 460:
-                    array3.append(t.xyxy[0].xmin[i])
-            str = ''
-            end=time.time()
-            print("deltatime 217:",end-start)
-            array.sort()
-            for i in range(len(array)):
+    if(len(saveResult)>100):
+        saveResult.clear()
+        saveIndex.clear()
+    if captchaImage in saveResult:
+        results=saveResult[captchaImage]
+        # print("len(saveResult[captchaImage]):",len(saveResult[captchaImage]))
+        # print("saveIndex[captchaImage]:",saveIndex[captchaImage])
+        if(saveIndex[captchaImage]<len(saveResult[captchaImage])):
+            saveIndex[captchaImage]=saveIndex[captchaImage]+1
+        # print("len(saveResult[captchaImage]):",len(saveResult[captchaImage]))
+        # print("saveIndex[captchaImage]:",saveIndex[captchaImage])
+        result=results[saveIndex[captchaImage]-1]
+        end=time.time()
+        return jsonify({"message": "sucess",
+                        "predictions":{
+                            "captcha":result,
+                            "confidence":"oke",
+                            "OriginCaptcha":{
+                                "hint_1":"x_x",
+                                "hint_2":"x_x",
+                                "hint_3":"x_x",
+                                "hint_4":"x_x",
+                                "hint_5":"x_x",
+                                "main":"xxxxx"
+                            },
+                            "time":end-start
+                            },
+                        "success":True
+                        }
+                        ), 200
+    else:
+        user = Users.query.filter_by(merchant_key=key).first()
+        # #print(user.password)
+        if user:
+            if user.count_captcha>0:
+                user.count_captcha=user.count_captcha-1;
+                db.session.commit()
+                end=time.time()
+                print("delta time",end-start)
+                imagedata = base64.b64decode(captchaImage)
+                buf = io.BytesIO(imagedata)
+                image=Image.open(buf)
+                image = image.resize((640, 640))
+                results = model(image)
+                xmin = 0;
+                ymin = 10;
+                ymax = 200;
+                count = 0;
+                array = []
+                strcompare = ''
+                ymax1 = 360
+                array1 = []
+                ymax2 = 450
+                ymax3 = 530
+                array2 = []
+                array3 = []
+                # start=time.time()
+                t=results.pandas();
                 for j in range(len(t.xyxy[0].name)):
-                    if array[i] == t.xyxy[0].xmin[j]:
-                        str=str+t.xyxy[0].name[j]
-            print("str: "+str)
-            array1.sort()
-            array2.sort()
-            array3.sort()
-            end=time.time()
-            print("deltatime 228:",end-start)
-            for x in array1:
-                array.append(x)
-            for x in array2:
-                array.append(x)
-            # print(array1)
-            for i in range(len(array)):
-                for j in range(len(t.xyxy[0].name)):
-                    if array[i] == t.xyxy[0].xmin[j]:
-                        strcompare = strcompare + t.xyxy[0].name[j]
-            end=time.time()
-            print("deltatime 239:",end-start)
-            i = 0
-            index1=0
-            index2=0
-            counter=0
-            check={}
-            dict={}
-            for x in strcompare:
-                if not x.isdigit():
-                    check[x]=False
-            while(i<len(strcompare)):
-                if(strcompare[i].isdigit()):
-                   
-                    if (counter%2==0):
-                        index1=i
-                        counter=counter+1
-                        if(index2!=0):
-                            for j in range(index2+1,index1,1):
-                                if (not strcompare[j] in dict):
-                                    dict[strcompare[j]]=strcompare[index1]
-        
-                                elif not check[strcompare[j]]:
+                    if (t.xyxy[0].name[j] == 'and'):
+                        t.xyxy[0].name[j] = '&'
+                    elif (t.xyxy[0].name[j] == 'acong'):
+                        t.xyxy[0].name[j] = '@'
+                    elif (t.xyxy[0].name[j] == 'thang'):
+                        t.xyxy[0].name[j] = '#'
+                    elif (t.xyxy[0].name[j] == 'per'):
+                        t.xyxy[0].name[j] = '%'
+                    elif (t.xyxy[0].name[j] == 'dolar'):
+                        t.xyxy[0].name[j] = '$'
+                    # print("result:",t.xyxy[0].name[j])    
+                for i in range(len(t.xyxy[0].name)):
+                    if t.xyxy[0].ymin[i] < ymax:
+                        array.append(t.xyxy[0].xmin[i])
+                    elif t.xyxy[0].ymin[i] < ymax1 and t.xyxy[0].ymin[i] > 250:
+                        array1.append(t.xyxy[0].xmin[i])
+                    elif t.xyxy[0].ymin[i] < ymax2 and t.xyxy[0].ymin[i] > 370:
+                        array2.append(t.xyxy[0].xmin[i])
+                    elif t.xyxy[0].ymin[i] < ymax3 and t.xyxy[0].ymin[i] > 460:
+                        array3.append(t.xyxy[0].xmin[i])
+                str = ''
+                array.sort()
+                for i in range(len(array)):
+                    for j in range(len(t.xyxy[0].name)):
+                        if array[i] == t.xyxy[0].xmin[j]:
+                            str=str+t.xyxy[0].name[j]
+                # print("str: "+str)
+                array1.sort()
+                array2.sort()
+                array3.sort()
+                for x in array2:
+                    array1.append(x)
+                for x in array3:
+                    array1.append(x)
+                # print(array1)
+                for i in range(len(array1)):
+                    for j in range(len(t.xyxy[0].name)):
+                        if array1[i] == t.xyxy[0].xmin[j]:
+                            strcompare = strcompare + t.xyxy[0].name[j]
+                end=time.time()
+                print("strcompare",strcompare)
+                print("deltatime 239:",end-start)        
+                i = 0
+                index1=0
+                index2=0
+                counter=0
+                check={}
+                dict={}
+                for x in strcompare:
+                    if not x.isdigit():
+                        check[x]=False
+                while(i<len(strcompare)):
+                    if(strcompare[i].isdigit()):
+                    
+                        if (counter%2==0):
+                            index1=i
+                            counter=counter+1
+                            if(index2!=0):
+                                for j in range(index2+1,index1,1):
+                                    if (not strcompare[j] in dict):
                                         dict[strcompare[j]]=strcompare[index1]
-                                if(abs(index2-index1)<=2):
-                                        check[strcompare[j]]=True
-                        else:
-                            for j in range(index2,index1,1):
-                                if (not strcompare[j] in dict):
-                                    dict[strcompare[j]]=strcompare[index1]
-        
-                                elif not check[strcompare[j]]:
+            
+                                    elif not check[strcompare[j]]:
+                                            dict[strcompare[j]]=strcompare[index1]
+                                    if(abs(index2-index1)<=2):
+                                            check[strcompare[j]]=True
+                            else:
+                                for j in range(index2,index1,1):
+                                    if (not strcompare[j] in dict):
                                         dict[strcompare[j]]=strcompare[index1]
-                                if(abs(index2-index1)<=2):
-                                        check[strcompare[j]]=True
-                    else :
-                        index2=i
-                        counter=counter+1
-                        for j in range(index1+1,index2,1):      
-                                if (not strcompare[j] in dict):
-                                    dict[strcompare[j]]=strcompare[index2]
-        
-                                else:
-                                    if (not check[strcompare[j]]):
+            
+                                    elif not check[strcompare[j]]:
+                                            dict[strcompare[j]]=strcompare[index1]
+                                    if(abs(index2-index1)<=2):
+                                            check[strcompare[j]]=True
+                        else :
+                            index2=i
+                            counter=counter+1
+                            for j in range(index1+1,index2,1):      
+                                    if (not strcompare[j] in dict):
                                         dict[strcompare[j]]=strcompare[index2]
-                                if(abs(index2-index1)<=2):
-                                    check[strcompare[j]]=True
-                i=i+1
-            strsave=str;
-            list=[]
-            for x in str:
-                if not x in dict:
-                    dict[x]=-1
-                    for value in dict.values():
-                        dict[x]=value
-                        str=strsave
-                        for y in str:
-                            str=str.replace(y,dict[y])
+            
+                                    else:
+                                        if (not check[strcompare[j]]):
+                                            dict[strcompare[j]]=strcompare[index2]
+                                    if(abs(index2-index1)<=2):
+                                        check[strcompare[j]]=True
+                    i=i+1
+                strsave=str;
+                list=[]
+                for x in str:
+                    if not x in dict:
+                        # print("x not in dict",x)
+                        dict[x]=-1
+                        for value in dict.values():
+                            dict[x]=value
+                            str=strsave
+                            for y in str:
+                                str=str.replace(y,dict[y])
                             list.append(str)
-                        str=strsave
-                else:
-                    str=str.replace(x,dict[x])
-                    list.append(str)
-            result = ''.join([i for i in str if i.isdigit()])
-            #print("result: "+ result)
-            end=time.time()
-            # print("delta time3:",end-start)
-            return jsonify({"message": "sucess",
-                            "predictions":{
-                                "captcha":list,
-                                "confidence":"oke",
-                                "OriginCaptcha":{
-                                    "hint_1":"x_x",
-                                    "hint_2":"x_x",
-                                    "hint_3":"x_x",
-                                    "hint_4":"x_x",
-                                    "hint_5":"x_x",
-                                    "main":"xxxxx"
-                                },
-                                "time":end-start
-                                },
-                            "success":True
-                            }
-                           ), 200
-        return jsonify({"message": "your captcha is out"}), 200
-    return jsonify({"message": "can't found user"}), 200
+                            str=strsave
+                    else:
+                        str=str.replace(x,dict[x])
+                list.append(str)
+                index=0
+                saveResult[captchaImage]=list
+                saveIndex[captchaImage]=index
+                print(dict)
+                # print("list:",list)
+                result = ''.join([i for i in str if i.isdigit()])
+                #print("result: "+ result)
+                # end=time.time()
+                # print("delta time3:",end-start)
+                return jsonify({"message": "sucess",
+                        "predictions":{
+                            "captcha":list[0],
+                            "confidence":"oke",
+                            "OriginCaptcha":{
+                                "hint_1":"x_x",
+                                "hint_2":"x_x",
+                                "hint_3":"x_x",
+                                "hint_4":"x_x",
+                                "hint_5":"x_x",
+                                "main":"xxxxx"
+                            },
+                            "time":end-start
+                            },
+                        "success":True
+                        }
+                        ), 200
+            return jsonify({"message": "your captcha is out"}), 200
+        return jsonify({"message": "can't found user"}), 200
