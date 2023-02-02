@@ -162,6 +162,8 @@ def predict():
         # print("saveIndex[captchaImage]:",saveIndex[captchaImage])
         if(saveIndex[captchaImage]<len(saveResult[captchaImage])):
             saveIndex[captchaImage]=saveIndex[captchaImage]+1
+        else:
+            saveIndex[captchaImage]=0
         # print("len(saveResult[captchaImage]):",len(saveResult[captchaImage]))
         # print("saveIndex[captchaImage]:",saveIndex[captchaImage])
         result=results[saveIndex[captchaImage]-1]
@@ -322,6 +324,12 @@ def predict():
                 print(dict)
                 # print("list:",list)
                 result = ''.join([i for i in str if i.isdigit()])
+                for item in list:
+                    if not item.isdigit():
+                        list.remove(item)
+                    else:
+                        print(item)
+                # print("list:",list)
                 #print("result: "+ result)
                 # end=time.time()
                 # print("delta time3:",end-start)
