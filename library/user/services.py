@@ -305,6 +305,15 @@ def predict():
                 list=[]
                 for x in strResult:
                     if not x in dict:
+                        strResult=strResult.replace(x,'')
+                # print("strResult",strResult)
+                if(len(strResult)>=5):
+                      for y in strResult:
+                            strResult=strResult.replace(y,dict[y])
+                            list.append(strResult)
+                strResult=strsave
+                for x in strResult:
+                    if not x in dict:
                         # print("x not in dict",x)
                         dict[x]=-1
                         for value in dict.values():
