@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime 
 import time
 from flask import  jsonify
 from sqlalchemy.ext.declarative import declarative_base
@@ -14,7 +14,7 @@ from flask import request
 import numpy as np
 import cv2
 import torch
-import datetime
+# import datetime
 model = torch.hub.load('ultralytics/yolov5', 'custom', 'best.pt')
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
@@ -98,7 +98,7 @@ def change_key():
         # #print(user.password)
         if user:
             try:
-                now = datetime.now()
+                now = time.time()
                 #print(user.email)
                 temp = user.email + str(now)
                 user.merchant_key = encrypt(temp) + random_string(8, 4)
@@ -124,7 +124,7 @@ def update_captcha_number():
                 try:
                     user.count_captcha = user.count_captcha + int(data["count_captcha"])
                     db.session.commit()
-                    now = datetime.now()
+                    now = time.time()
                     return jsonify({
                         "email": user.email,
                         "count_capcha": user.count_captcha,
@@ -151,12 +151,15 @@ def predict():
     # imagefile.save(image_path)
     # #print(request.form.get('captcha'))
     start=time.time()
+    titleName=str(datetime.fromtimestamp(int(start)))
+    # print("start:",titleName)
     captchaImage=request.form.get('captcha')
     key=request.form.get('merchant_key')
     if(len(saveResult)>100):
         saveResult.clear()
         saveIndex.clear()
     if captchaImage in saveResult:
+        print("Da luu trong dict")
         results=saveResult[captchaImage]
         # print("len(saveResult[captchaImage]):",len(saveResult[captchaImage]))
         # print("saveIndex[captchaImage]:",saveIndex[captchaImage])
@@ -193,7 +196,7 @@ def predict():
                 user.count_captcha=user.count_captcha-1;
                 db.session.commit()
                 end=time.time()
-                print("delta time",end-start)
+                # print("delta time",end-start)
                 imagedata = base64.b64decode(captchaImage)
                 buf = io.BytesIO(imagedata)
                 image=Image.open(buf)
@@ -211,7 +214,6 @@ def predict():
                 ymax3 = 530
                 array2 = []
                 array3 = []
-                # start=time.time()
                 t=results.pandas();
                 for j in range(len(t.xyxy[0].name)):
                     if (t.xyxy[0].name[j] == 'and'):
@@ -234,12 +236,12 @@ def predict():
                         array2.append(t.xyxy[0].xmin[i])
                     elif t.xyxy[0].ymin[i] < ymax3 and t.xyxy[0].ymin[i] > 460:
                         array3.append(t.xyxy[0].xmin[i])
-                str = ''
+                strResult = ''
                 array.sort()
                 for i in range(len(array)):
                     for j in range(len(t.xyxy[0].name)):
                         if array[i] == t.xyxy[0].xmin[j]:
-                            str=str+t.xyxy[0].name[j]
+                            strResult=strResult+t.xyxy[0].name[j]
                 # print("str: "+str)
                 array1.sort()
                 array2.sort()
@@ -253,9 +255,6 @@ def predict():
                     for j in range(len(t.xyxy[0].name)):
                         if array1[i] == t.xyxy[0].xmin[j]:
                             strcompare = strcompare + t.xyxy[0].name[j]
-                end=time.time()
-                print("strcompare",strcompare)
-                print("deltatime 239:",end-start)        
                 i = 0
                 index1=0
                 index2=0
@@ -302,37 +301,46 @@ def predict():
                                     if(abs(index2-index1)<=2):
                                         check[strcompare[j]]=True
                     i=i+1
-                strsave=str;
+                strsave=strResult;
                 list=[]
-                for x in str:
+                for x in strResult:
                     if not x in dict:
                         # print("x not in dict",x)
                         dict[x]=-1
                         for value in dict.values():
                             dict[x]=value
-                            str=strsave
-                            for y in str:
-                                str=str.replace(y,dict[y])
-                            list.append(str)
-                            str=strsave
+                            strResult=strsave
+                            for y in strResult:
+                                strResult=strResult.replace(y,dict[y])
+                            list.append(strResult)
+                            strResult=strsave
                     else:
-                        str=str.replace(x,dict[x])
-                list.append(str)
+                        strResult=strResult.replace(x,dict[x])
+                list.append(strResult)
                 index=0
                 saveResult[captchaImage]=list
                 saveIndex[captchaImage]=index
-                print(dict)
+                # print(dict)
                 # print("list:",list)
-                result = ''.join([i for i in str if i.isdigit()])
+                result = ''.join([i for i in strResult if i.isdigit()])
                 for item in list:
                     if not item.isdigit():
                         list.remove(item)
-                    else:
-                        print(item)
+                    # else:
+                    #     print(item)
                 # print("list:",list)
                 #print("result: "+ result)
                 # end=time.time()
                 # print("delta time3:",end-start)
+                end=time.time()
+                # print("strcompare",strcompare)
+                titleName=titleName+"--"+str(datetime.fromtimestamp(int(end)))+"--"+str(list)+".txt"
+                titleName=titleName.replace(":"," ")
+                titleName=titleName.replace("'","")
+                file=open(titleName,'w')
+                file.write(captchaImage)
+                file.close()
+                # print("titleName:",titleName)       
                 return jsonify({"message": "sucess",
                         "predictions":{
                             "captcha":list[0],
