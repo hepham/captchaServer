@@ -303,15 +303,27 @@ def predict():
                     i=i+1
                 strsave=strResult;
                 list=[]
-                for x in strResult:
-                    if not x in dict:
-                        strResult=strResult.replace(x,'')
-                if(len(strResult)>=0):
-                      for y in strResult:
-                            strResult=strResult.replace(y,dict[y])
+                print(strResult)
+                ListMistake={'a':'e','f':'e','e':'f','c':'e'}
+                
+                
+                if(len(strResult)>6):
+                    for x in strResult:
+                        if not x in dict:
+                            strResult=strResult.replace(x,'')
+                else:
+                    for x in strResult:
+                        if not x in dict:
+                            if x in ListMistake:
+                                strResult=strResult.replace(x,ListMistake.get(x))
+                            else:
+                                strResult=strResult.replace(x,'1')
+                for y in strResult:
+                        strResult=strResult.replace(y,dict[y])
                 print(strResult)
                 list.append(strResult)
                 strResult=strsave
+                print(dict)
                 # check gần đúng-------------------------
                 # for x in strResult:
                 #     if not x in dict:
