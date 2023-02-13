@@ -306,29 +306,31 @@ def predict():
                 for x in strResult:
                     if not x in dict:
                         strResult=strResult.replace(x,'')
-                # print("strResult",strResult)
-                if(len(strResult)>=5):
+                if(len(strResult)>=0):
                       for y in strResult:
                             strResult=strResult.replace(y,dict[y])
-                            list.append(strResult)
-                strResult=strsave
-                for x in strResult:
-                    if not x in dict:
-                        # print("x not in dict",x)
-                        dict[x]=-1
-                        for value in dict.values():
-                            dict[x]=value
-                            strResult=strsave
-                            for y in strResult:
-                                strResult=strResult.replace(y,dict[y])
-                            list.append(strResult)
-                            strResult=strsave
-                    else:
-                        strResult=strResult.replace(x,dict[x])
+                print(strResult)
                 list.append(strResult)
+                strResult=strsave
+                # check gần đúng-------------------------
+                # for x in strResult:
+                #     if not x in dict:
+                #         # print("x not in dict",x)
+                #         dict[x]=-1
+                #         for value in dict.values():
+                #             dict[x]=value
+                #             strResult=strsave
+                #             for y in strResult:
+                #                 strResult=strResult.replace(y,dict[y])
+                #             list.append(strResult)
+                #             strResult=strsave
+                #     else:
+                #         strResult=strResult.replace(x,dict[x])
+                # list.append(strResult)
                 index=0
                 saveResult[captchaImage]=list
                 saveIndex[captchaImage]=index
+                # ------------------------------------------------
                 # print(dict)
                 # print("list:",list)
                 result = ''.join([i for i in strResult if i.isdigit()])
