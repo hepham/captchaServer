@@ -20,7 +20,7 @@ user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 saveResult={}
 saveIndex={}
-
+saveCheck={}
 
 # Sign Up
 
@@ -167,9 +167,18 @@ def predict():
             saveIndex[captchaImage]=saveIndex[captchaImage]+1
         else:
             saveIndex[captchaImage]=0
+        
         # print("len(saveResult[captchaImage]):",len(saveResult[captchaImage]))
         # print("saveIndex[captchaImage]:",saveIndex[captchaImage])
         result=results[saveIndex[captchaImage]-1]
+        if saveCheck[captchaImage]:
+            titleName=titleName+"-"+result+".txt"
+            titleName=titleName.replace(":"," ")
+            titleName=titleName.replace("'","")
+            file=open(titleName,'w')
+            file.write(captchaImage)
+            file.close()
+            saveCheck[captchaImage]=False
         end=time.time()
         return jsonify({"message": "sucess",
                         "predictions":{
@@ -357,13 +366,14 @@ def predict():
                 # print("delta time3:",end-start)
                 end=time.time()
                 # print("strcompare",strcompare)
-                titleName=titleName+"--"+str(datetime.fromtimestamp(int(end)))+"--"+str(list)+".txt"
-                titleName=titleName.replace(":"," ")
-                titleName=titleName.replace("'","")
-                file=open(titleName,'w')
-                file.write(captchaImage)
-                file.close()
+                # titleName=titleName+"--"+str(datetime.fromtimestamp(int(end)))+"--"+str(list)+".txt"
+                # titleName=titleName.replace(":"," ")
+                # titleName=titleName.replace("'","")
+                # file=open(titleName,'w')
+                # file.write(captchaImage)
+                # file.close()
                 # print("titleName:",titleName)       
+                saveCheck[captchaImage]=True
                 return jsonify({"message": "sucess",
                         "predictions":{
                             "captcha":list[0],

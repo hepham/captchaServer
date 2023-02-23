@@ -36,10 +36,10 @@ def create_db(app):
 def create_app(config_file="config.py"):
     app = Flask(__name__)
     CORS(app)
-    
+    app.config["SQLALCHEMY_DATABASE_URI"]= 'mysql+pymysql://ecaptcha:vietanhnd1909@103.200.21.254/captcha_web'
     db.init_app(app)
     ma.init_app(app)
     app.config.from_pyfile(config_file)
-    create_db(app)
+    # create_db(app)
     app.register_blueprint(users)
     return app
