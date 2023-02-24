@@ -146,13 +146,8 @@ def chuyen_base64_sang_anh(anh_base64):
 
 # def getValue(arr):
 def predict():
-    # imagefile= request.files['imagefile']
-    # image_path="./images/"+imagefile.filename
-    # imagefile.save(image_path)
-    # #print(request.form.get('captcha'))
     start=time.time()
     titleName=str(datetime.fromtimestamp(int(start)))
-    # print("start:",titleName)
     captchaImage=request.form.get('captcha')
     key=request.form.get('merchant_key')
     if(len(saveResult)>100):
@@ -167,11 +162,9 @@ def predict():
             saveIndex[captchaImage]=saveIndex[captchaImage]+1
         else:
             saveIndex[captchaImage]=0
-        
-        # print("len(saveResult[captchaImage]):",len(saveResult[captchaImage]))
-        # print("saveIndex[captchaImage]:",saveIndex[captchaImage])
         result=results[saveIndex[captchaImage]-1]
         if saveCheck[captchaImage]:
+            #save file wrong
             titleName=titleName+"-"+result+".txt"
             titleName=titleName.replace(":"," ")
             titleName=titleName.replace("'","")
@@ -205,7 +198,6 @@ def predict():
                 user.count_captcha=user.count_captcha-1;
                 db.session.commit()
                 end=time.time()
-                # print("delta time",end-start)
                 imagedata = base64.b64decode(captchaImage)
                 buf = io.BytesIO(imagedata)
                 image=Image.open(buf)
@@ -311,7 +303,7 @@ def predict():
                                         check[strcompare[j]]=True
                     i=i+1
                 strsave=strResult;
-                list=[]
+                listResult=[]
                 print(strResult)
                 ListMistake={'a':'e','f':'e','e':'f','c':'e'}
                 
@@ -321,16 +313,17 @@ def predict():
                         if not x in dict:
                             strResult=strResult.replace(x,'')
                 else:
+                    strResult=strResult+"u"
                     for x in strResult:
                         if not x in dict:
                             if x in ListMistake:
                                 strResult=strResult.replace(x,ListMistake.get(x))
                             else:
-                                strResult=strResult.replace(x,'1')
+                                strResult=strResult.replace(x,list(dict.keys())[0])
                 for y in strResult:
                         strResult=strResult.replace(y,dict[y])
-                print(strResult)
-                list.append(strResult)
+                # print("ket qua:"+strResult)
+                listResult.append(strResult)
                 strResult=strsave
                 print(dict)
                 # check gần đúng-------------------------
@@ -349,34 +342,21 @@ def predict():
                 #         strResult=strResult.replace(x,dict[x])
                 # list.append(strResult)
                 index=0
-                saveResult[captchaImage]=list
+                saveResult[captchaImage]=listResult
                 saveIndex[captchaImage]=index
                 # ------------------------------------------------
                 # print(dict)
                 # print("list:",list)
                 result = ''.join([i for i in strResult if i.isdigit()])
-                for item in list:
+                for item in listResult:
                     if not item.isdigit():
-                        list.remove(item)
-                    # else:
-                    #     print(item)
-                # print("list:",list)
-                #print("result: "+ result)
-                # end=time.time()
-                # print("delta time3:",end-start)
+                        listResult.remove(item)
                 end=time.time()
-                # print("strcompare",strcompare)
-                # titleName=titleName+"--"+str(datetime.fromtimestamp(int(end)))+"--"+str(list)+".txt"
-                # titleName=titleName.replace(":"," ")
-                # titleName=titleName.replace("'","")
-                # file=open(titleName,'w')
-                # file.write(captchaImage)
-                # file.close()
-                # print("titleName:",titleName)       
+                # print("strcompare",strcompare)   
                 saveCheck[captchaImage]=True
                 return jsonify({"message": "sucess",
                         "predictions":{
-                            "captcha":list[0],
+                            "captcha":listResult[0],
                             "confidence":"oke",
                             "OriginCaptcha":{
                                 "hint_1":"x_x",
