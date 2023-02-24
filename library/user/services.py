@@ -313,7 +313,7 @@ def predict():
                         if not x in dict:
                             strResult=strResult.replace(x,'')
                 else:
-                    strResult=strResult+"u"
+                    strResult=strResult
                     for x in strResult:
                         if not x in dict:
                             if x in ListMistake:
