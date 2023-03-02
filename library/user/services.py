@@ -1,8 +1,9 @@
 from datetime import datetime 
+from datetime import timezone
 import time
 from flask import  jsonify
 from sqlalchemy.ext.declarative import declarative_base
-from library.encrypt import random_string, encrypt
+from library.encrypt import encrypt_message, random_string, encrypt
 from library.extension import db
 from library.library_ma import UserSchema
 from library.model import Users
@@ -146,6 +147,17 @@ def chuyen_base64_sang_anh(anh_base64):
 
 # def getValue(arr):
 def predict():
+    keyEncrypt=int(datetime.now(timezone.utc).strftime("%d%Y%m%M%H"))
+    strings = datetime.now(timezone.utc).strftime("%d,%Y,%m,%M,%H")
+    t = strings.split(',')
+    keyEncrypt="";
+    numbers = [ int(x) for x in t ]
+    for x in numbers:
+        keyEncrypt=keyEncrypt+str(x)
+    keyEncrypt=str(int(keyEncrypt)>>1);
+    # keyEncrypt=str(keyEncrypt);  
+    # print(keyEncrypt)
+    # encrypted_message = encrypt("65454654654", keyEncrypt)
     start=time.time()
     titleName=str(datetime.fromtimestamp(int(start)))
     captchaImage=request.form.get('captcha')
@@ -154,7 +166,7 @@ def predict():
         saveResult.clear()
         saveIndex.clear()
     if captchaImage in saveResult:
-        print("Da luu trong dict")
+        # print("Da luu trong dict")
         results=saveResult[captchaImage]
         # print("len(saveResult[captchaImage]):",len(saveResult[captchaImage]))
         # print("saveIndex[captchaImage]:",saveIndex[captchaImage])
@@ -163,33 +175,20 @@ def predict():
         else:
             saveIndex[captchaImage]=0
         result=results[saveIndex[captchaImage]-1]
-        if saveCheck[captchaImage]:
-            #save file wrong
-            titleName=titleName+"-"+result+".txt"
-            titleName=titleName.replace(":"," ")
-            titleName=titleName.replace("'","")
-            file=open(titleName,'w')
-            file.write(captchaImage)
-            file.close()
-            saveCheck[captchaImage]=False
+        # save file
+        # if saveCheck[captchaImage]:
+        #     #save file wrong
+        #     titleName=titleName+"-"+result+".txt"
+        #     titleName=titleName.replace(":"," ")
+        #     titleName=titleName.replace("'","")
+        #     file=open(titleName,'w')
+        #     file.write(captchaImage)
+        #     file.close()
+        #     saveCheck[captchaImage]=False
         end=time.time()
-        return jsonify({"message": "sucess",
-                        "predictions":{
-                            "captcha":result,
-                            "confidence":"oke",
-                            "OriginCaptcha":{
-                                "hint_1":"x_x",
-                                "hint_2":"x_x",
-                                "hint_3":"x_x",
-                                "hint_4":"x_x",
-                                "hint_5":"x_x",
-                                "main":"xxxxx"
-                            },
-                            "time":end-start
-                            },
-                        "success":True
-                        }
-                        ), 200
+        encrypted_message = encrypt(result, keyEncrypt)
+        encrypt_message="true|"+encrypted_message;
+        return encrypt_message
     else:
         user = Users.query.filter_by(merchant_key=key).first()
         # #print(user.password)
@@ -243,6 +242,7 @@ def predict():
                     for j in range(len(t.xyxy[0].name)):
                         if array[i] == t.xyxy[0].xmin[j]:
                             strResult=strResult+t.xyxy[0].name[j]
+                            # print("arr:",t.xyxy[0].name[j],t.xyxy[0].xmin[j])
                 # print("str: "+str)
                 array1.sort()
                 array2.sort()
@@ -304,7 +304,7 @@ def predict():
                     i=i+1
                 strsave=strResult;
                 listResult=[]
-                print(strResult)
+                # print(strResult)
                 ListMistake={'a':'e','f':'e','e':'f','c':'e'}
                 
                 
@@ -325,7 +325,7 @@ def predict():
                 # print("ket qua:"+strResult)
                 listResult.append(strResult)
                 strResult=strsave
-                print(dict)
+                # print(dict)
                 # check gần đúng-------------------------
                 # for x in strResult:
                 #     if not x in dict:
@@ -354,22 +354,10 @@ def predict():
                 end=time.time()
                 # print("strcompare",strcompare)   
                 saveCheck[captchaImage]=True
-                return jsonify({"message": "sucess",
-                        "predictions":{
-                            "captcha":listResult[0],
-                            "confidence":"oke",
-                            "OriginCaptcha":{
-                                "hint_1":"x_x",
-                                "hint_2":"x_x",
-                                "hint_3":"x_x",
-                                "hint_4":"x_x",
-                                "hint_5":"x_x",
-                                "main":"xxxxx"
-                            },
-                            "time":end-start
-                            },
-                        "success":True
-                        }
-                        ), 200
+                # print("listResult[0]",listResult[0])
+                # print(type(listResult[0]))
+                encrypted_message = encrypt(listResult[0], keyEncrypt)
+                encrypted_message="true|"+encrypted_message
+                return encrypted_message
             return jsonify({"message": "your captcha is out"}), 200
         return jsonify({"message": "can't found user"}), 200
