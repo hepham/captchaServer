@@ -15,6 +15,8 @@ from flask import request
 import numpy as np
 import cv2
 import torch
+import json
+import requests
 # import datetime
 model = torch.hub.load('ultralytics/yolov5', 'custom', 'best.pt')
 user_schema = UserSchema()
@@ -22,9 +24,10 @@ users_schema = UserSchema(many=True)
 saveResult={}
 saveIndex={}
 saveCheck={}
-
+countcaptcha=0;
 # Sign Up
-
+if(countcaptcha>10):
+    countcaptcha=0
 def sign_up_service():
     data = request.json
     #print(data)
@@ -162,6 +165,7 @@ def predict():
     titleName=str(datetime.fromtimestamp(int(start)))
     captchaImage=request.form.get('captcha')
     key=request.form.get('merchant_key')
+    
     if(len(saveResult)>100):
         saveResult.clear()
         saveIndex.clear()
@@ -186,6 +190,7 @@ def predict():
         #     file.close()
         #     saveCheck[captchaImage]=False
         end=time.time()
+        
         encrypted_message = encrypt(result, keyEncrypt)
         encrypt_message="true|"+encrypted_message;
         return encrypt_message
@@ -194,9 +199,13 @@ def predict():
         # #print(user.password)
         if user:
             if user.count_captcha>0:
+                url="http://103.200.21.254:8090/api/account/save-captcha-history"
+                params={"merchantKey":key,"userIp":request.remote_addr}
+                username="admin"
+                password="vanhngoc1909"
+                response=requests.post(url,auth=(username,password),json=params)
                 user.count_captcha=user.count_captcha-1;
                 db.session.commit()
-                end=time.time()
                 imagedata = base64.b64decode(captchaImage)
                 buf = io.BytesIO(imagedata)
                 image=Image.open(buf)
