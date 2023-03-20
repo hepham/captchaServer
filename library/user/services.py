@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from library.encrypt import encrypt_message, random_string, encrypt
 from library.extension import db
 from library.library_ma import UserSchema
-from library.model import Users
+from library.model import Users,DataSave
 import base64
 from PIL import Image
 import io
@@ -162,23 +162,29 @@ def predict():
     # print(keyEncrypt)
     # encrypted_message = encrypt("65454654654", keyEncrypt)
     start=time.time()
+   
     titleName=str(datetime.fromtimestamp(int(start)))
     captchaImage=request.form.get('captcha')
     key=request.form.get('merchant_key')
+    # loai bo cac gia tri khoi dictionary sau 300s
+    keyRemove=[]
+    for keyR in saveResult:
+        if(start-saveResult[keyR].timesave> 10):
+            keyRemove.append(keyR)
+    for keyR in keyRemove:
+        del(saveResult[keyR])
+    saveResultLength=len(saveResult)
+    while(saveResultLength>5):
+        # lay phan tu dau tien cua dictionary va loai bo chung
+        res = next(iter(saveResult))
+        del(saveResult[res])   
+        saveResultLength=len(saveResult)
     
-    if(len(saveResult)>100):
-        saveResult.clear()
-        saveIndex.clear()
+        
     if captchaImage in saveResult:
         # print("Da luu trong dict")
         results=saveResult[captchaImage]
-        # print("len(saveResult[captchaImage]):",len(saveResult[captchaImage]))
-        # print("saveIndex[captchaImage]:",saveIndex[captchaImage])
-        if(saveIndex[captchaImage]<len(saveResult[captchaImage])):
-            saveIndex[captchaImage]=saveIndex[captchaImage]+1
-        else:
-            saveIndex[captchaImage]=0
-        result=results[saveIndex[captchaImage]-1]
+        result=results.captchaDecode[0]
         # save file
         # if saveCheck[captchaImage]:
         #     #save file wrong
@@ -196,20 +202,15 @@ def predict():
         return encrypt_message
     else:
         user = Users.query.filter_by(merchant_key=key).first()
-        # #print(user.password)
         if user:
             if user.count_captcha>0:
-                url="http://103.200.21.254:8090/api/account/save-captcha-history"
-                params={"merchantKey":key,"userIp":request.remote_addr}
-                username="admin"
-                password="vanhngoc1909"
-                response=requests.post(url,auth=(username,password),json=params)
                 user.count_captcha=user.count_captcha-1;
                 db.session.commit()
                 imagedata = base64.b64decode(captchaImage)
                 buf = io.BytesIO(imagedata)
                 image=Image.open(buf)
                 image = image.resize((640, 640))
+                # Decode captcha____________________________________________________________________________________
                 results = model(image)
                 xmin = 0;
                 ymin = 10;
@@ -314,7 +315,7 @@ def predict():
                 strsave=strResult;
                 listResult=[]
                 # print(strResult)
-                ListMistake={'a':'e','f':'e','e':'f','c':'e'}
+                ListMistake={}
                 
                 
                 if(len(strResult)>6):
@@ -334,6 +335,7 @@ def predict():
                 # print("ket qua:"+strResult)
                 listResult.append(strResult)
                 strResult=strsave
+                # Ket thuc decode captcha______________________________________________________________________
                 # print(dict)
                 # check gần đúng-------------------------
                 # for x in strResult:
@@ -351,8 +353,8 @@ def predict():
                 #         strResult=strResult.replace(x,dict[x])
                 # list.append(strResult)
                 index=0
-                saveResult[captchaImage]=listResult
-                saveIndex[captchaImage]=index
+                saveResult[captchaImage]=DataSave(listResult,start)
+                # saveIndex[captchaImage]=index
                 # ------------------------------------------------
                 # print(dict)
                 # print("list:",list)
@@ -362,10 +364,21 @@ def predict():
                         listResult.remove(item)
                 end=time.time()
                 # print("strcompare",strcompare)   
-                saveCheck[captchaImage]=True
+                # saveCheck[captchaImage]=True
                 # print("listResult[0]",listResult[0])
                 # print(type(listResult[0]))
+
+                # post data history
+                url="http://103.200.21.254:8090/api/account/save-captcha-history"
+                params={"merchantKey":key,"userIp":request.remote_addr,"captcha":listResult[0]}
+                username="admin"
+                password="vanhngoc1909"
+                try:
+                    response=requests.post(url,auth=(username,password),json=params)
+                except Exception as e:
+                    print(e)
                 encrypted_message = encrypt(listResult[0], keyEncrypt)
+                
                 encrypted_message="true|"+encrypted_message
                 return encrypted_message
             return jsonify({"message": "your captcha is out"}), 200

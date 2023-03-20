@@ -38,3 +38,7 @@ class Users(db.Model):
         temp = email + str(now)
         self.merchant_key = encrypt(temp) + random_string(8, 4)
         self.count_captcha = 0
+class DataSave():
+    def __init__(self, captchaDecode, timesave):
+        self.captchaDecode = captchaDecode
+        self.timesave = timesave
