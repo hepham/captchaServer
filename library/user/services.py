@@ -150,8 +150,9 @@ def chuyen_base64_sang_anh(anh_base64):
 
 # def getValue(arr):
 def predict():
-    keyEncrypt=int(datetime.now(timezone.utc).strftime("%d%Y%m%M%H"))
-    strings = datetime.now(timezone.utc).strftime("%d,%Y,%m,%M,%H")
+    print(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
+    keyEncrypt=int(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
+    strings = datetime.now(timezone.utc).strftime("%d,%Y,%m,%H")
     t = strings.split(',')
     keyEncrypt="";
     numbers = [ int(x) for x in t ]
@@ -366,7 +367,7 @@ def predict():
                 end=time.time()
                 # print("strcompare",strcompare)   
                 # saveCheck[captchaImage]=True
-                # print("listResult[0]",listResult[0])
+                print("listResult[0]",listResult[0])
                 # print(type(listResult[0]))
 
                 # post data history
