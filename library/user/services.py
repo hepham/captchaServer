@@ -169,12 +169,13 @@ def predict():
     # loai bo cac gia tri khoi dictionary sau 300s
     keyRemove=[]
     for keyR in saveResult:
-        if(start-saveResult[keyR].timesave> 10):
+        if(start-saveResult[keyR].timesave> 300):
             keyRemove.append(keyR)
     for keyR in keyRemove:
         del(saveResult[keyR])
     saveResultLength=len(saveResult)
-    while(saveResultLength>5):
+    # do dai cua dict=10000
+    while(saveResultLength>10000):
         # lay phan tu dau tien cua dictionary va loai bo chung
         res = next(iter(saveResult))
         del(saveResult[res])   
