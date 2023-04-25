@@ -17,6 +17,8 @@ import cv2
 import torch
 import json
 import requests
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
 # import datetime
 model = torch.hub.load('ultralytics/yolov5', 'custom', 'best.pt')
 user_schema = UserSchema()
@@ -25,6 +27,11 @@ saveResult={}
 saveIndex={}
 saveCheck={}
 countcaptcha=0;
+rename={}
+with open('privateKey.pem', 'r') as f:
+    private_key_string = f.read()
+with open('publicKey.pem', 'rb') as f:
+    public_key_string = f.read()
 # Sign Up
 if(countcaptcha>10):
     countcaptcha=0
@@ -150,6 +157,276 @@ def chuyen_base64_sang_anh(anh_base64):
 
 # def getValue(arr):
 def predict():
+    # print(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
+    keyEncrypt=int(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
+    strings = datetime.now(timezone.utc).strftime("%d,%Y,%m,%H")
+    t = strings.split(',')
+    keyEncrypt="";
+    numbers = [ int(x) for x in t ]
+    for x in numbers:
+        keyEncrypt=keyEncrypt+str(x)
+    keyEncrypt=str(int(keyEncrypt)>>1);
+    # keyEncrypt=str(keyEncrypt);  
+    # print(keyEncrypt)
+    # encrypted_message = encrypt("65454654654", keyEncrypt)
+    start=time.time()
+    titleName=str(datetime.fromtimestamp(int(start)))
+    message=request.form.get('data')
+    captcha2=request.form.get('captcha')
+    private_key = RSA.import_key(private_key_string)
+    cipher = PKCS1_v1_5.new(private_key)
+    encrypted_bytes = base64.b64decode(message)
+    captcha1 = cipher.decrypt(encrypted_bytes, None)
+    # print(captcha1.decode('utf-8'))
+    captchaImage=captcha1.decode('utf-8')+captcha2
+    # captchaImage=request.form.get('captcha')
+    key=request.form.get('key')
+    # loai bo cac gia tri khoi dictionary sau 300s
+    keyRemove=[]
+    for keyR in saveResult:
+        if(start-saveResult[keyR].timesave> 300):
+            keyRemove.append(keyR)
+    for keyR in keyRemove:
+        del(saveResult[keyR])
+    saveResultLength=len(saveResult)
+    # do dai cua dict=10000
+    while(saveResultLength>10000):
+        # lay phan tu dau tien cua dictionary va loai bo chung
+        res = next(iter(saveResult))
+        del(saveResult[res])   
+        saveResultLength=len(saveResult)
+    
+        
+    if captchaImage in saveResult:
+        # print("Da luu trong dict")
+        results=saveResult[captchaImage]
+        result=results.captchaDecode
+        # save file
+        # if saveCheck[captchaImage]:
+        #     #save file wrong
+        #     titleName=titleName+"-"+result+".txt"
+        #     titleName=titleName.replace(":"," ")
+        #     titleName=titleName.replace("'","")
+        #     file=open(titleName,'w')
+        #     file.write(captchaImage)
+        #     file.close()
+        #     saveCheck[captchaImage]=False
+        end=time.time()
+        
+        # encrypted_message = encrypt(result, keyEncrypt)
+        public_key = RSA.import_key(public_key_string)
+        cipher = PKCS1_v1_5.new(public_key)
+        res_bytes=str.encode(result)
+        encrypted_message = cipher.encrypt(res_bytes)
+        encrypt_message="true|"+base64.b64encode(encrypted_message).decode("utf-8");
+        return encrypt_message
+    else:
+        user = Users.query.filter_by(merchant_key=key).first()
+        if user:
+            if user.count_captcha>0:
+                # print(user.count_captcha)
+                user.count_captcha=user.count_captcha-1;
+                db.session.commit()
+                imagedata = base64.b64decode(captchaImage)
+                buf = io.BytesIO(imagedata)
+                image=Image.open(buf)
+                image = image.resize((640, 640))
+                # Decode captcha____________________________________________________________________________________
+                results = model(image)
+                t=results.pandas();
+                res= decodeCaptcha(t);
+                saveResult[captchaImage]=DataSave(res,start)
+                # post data history
+                url="http://103.200.21.254:8090/api/account/save-captcha-history"
+                params={"merchantKey":key,"userIp":request.remote_addr,"captcha":res}
+                username="admin"
+                password="vanhngoc1909"
+                # try:
+                #     response=requests.post(url,auth=(username,password),json=params)
+                # except Exception as e:
+                #     print(e)
+                # encrypted_message = encrypt(res, keyEncrypt)
+                print("result:",res)
+                public_key = RSA.import_key(public_key_string)
+                cipher = PKCS1_v1_5.new(public_key)
+                res_bytes=str.encode(res)
+                encrypted_message = cipher.encrypt(res_bytes)
+                # encrypted_message = cipher.encrypt(res_bytes)
+                # print(base64.b64encode(encrypted_message).decode("utf-8"))
+                encrypt_message="true|"+base64.b64encode(encrypted_message).decode("utf-8");
+                # print(encrypt_message)
+                # encrypted_message="true|"+encrypted_message.decode('utf-8')
+                return encrypt_message
+            return jsonify({"message": "your captcha is out"}), 200
+        return jsonify({"message": "can't found user"}), 200
+      
+def decodeCaptcha(t):
+    xmin = 0;
+    ymin = 10;
+    ymax = 200;
+    count = 0;
+    array = []
+    strcompare = ''
+    ymax1 = 360
+    array1 = []
+    ymax2 = 450
+    ymax3 = 530
+    array2 = []
+    array3 = []
+    alphabet={}
+    for j in range(len(t.xyxy[0].name)):
+        if (t.xyxy[0].name[j] == 'and'):
+            alphabet[t.xyxy[0].name[j]] = '&'
+        elif (t.xyxy[0].name[j] == 'acong'):
+            alphabet[t.xyxy[0].name[j]]= '@'
+        elif (t.xyxy[0].name[j] == 'thang'):
+            alphabet[t.xyxy[0].name[j]] = '#'
+        elif (t.xyxy[0].name[j] == 'per'):
+            alphabet[t.xyxy[0].name[j]]= '%'
+        elif (t.xyxy[0].name[j] == 'dolar'):
+            alphabet[t.xyxy[0].name[j]] = '$'
+        else: alphabet[t.xyxy[0].name[j]] = t.xyxy[0].name[j]
+        # print("result:",t.xyxy[0].name[j])    
+        # get cordinate point
+    for i in range(len(t.xyxy[0].name)):
+        if t.xyxy[0].ymin[i] < ymax:
+            array.append(t.xyxy[0].xmin[i])
+        elif t.xyxy[0].ymin[i] < ymax1 and t.xyxy[0].ymin[i] > 250:
+            array1.append(t.xyxy[0].xmin[i])
+        elif t.xyxy[0].ymin[i] < ymax2 and t.xyxy[0].ymin[i] > 370:
+            array2.append(t.xyxy[0].xmin[i])
+            # array2.append(alphabet[t.xyxy[0].xmin[i]])
+        elif t.xyxy[0].ymin[i] < ymax3 and t.xyxy[0].ymin[i] > 460:
+            array3.append(t.xyxy[0].xmin[i])
+            # array3.append(alphabet[t.xyxy[0].xmin[i]])
+    strResult = ''
+    array.sort()
+    for i in range(len(array)):
+        for j in range(len(t.xyxy[0].name)):
+            if array[i] == t.xyxy[0].xmin[j]:
+                strResult=strResult+alphabet[t.xyxy[0].name[j]]
+                # if t.xyxy[0].name[j] in alphabet:
+                #     strResult=strResult+alphabet[t.xyxy[0].name[j]]
+                # else:strResult=strResult+t.xyxy[0].name[j]
+                # print("arr:",t.xyxy[0].name[j],t.xyxy[0].xmin[j])
+    # print("str: "+str)
+    array1.sort()
+    array2.sort()
+    array3.sort()
+    for x in array2:
+        array1.append(x)
+    for x in array3:
+        array1.append(x)
+    for i in range(len(array1)):
+        # print(i)
+        for j in range(len(t.xyxy[0].name)):
+            if array1[i] == t.xyxy[0].xmin[j]:
+                strcompare = strcompare + alphabet[t.xyxy[0].name[j]]
+                # if t.xyxy[0].name[j] in alphabet:
+                #     strcompare = strcompare + alphabet[t.xyxy[0].name[j]]
+                # else:strcompare = strcompare + t.xyxy[0].name[j]
+    i = 0
+    index1=0
+    index2=0
+    counter=0
+    check={}
+    dict={}
+    for x in strcompare:
+        if not x.isdigit():
+            check[x]=False
+    while(i<len(strcompare)):
+        if(strcompare[i].isdigit()):
+        
+            if (counter%2==0):
+                index1=i
+                counter=counter+1
+                if(index2!=0):
+                    for j in range(index2+1,index1,1):
+                        if (not strcompare[j] in dict):
+                            dict[strcompare[j]]=strcompare[index1]
+
+                        elif not check[strcompare[j]]:
+                                dict[strcompare[j]]=strcompare[index1]
+                        if(abs(index2-index1)<=2):
+                                check[strcompare[j]]=True
+                else:
+                    for j in range(index2,index1,1):
+                        if (not strcompare[j] in dict):
+                            dict[strcompare[j]]=strcompare[index1]
+
+                        elif not check[strcompare[j]]:
+                                dict[strcompare[j]]=strcompare[index1]
+                        if(abs(index2-index1)<=2):
+                                check[strcompare[j]]=True
+            else :
+                index2=i
+                counter=counter+1
+                for j in range(index1+1,index2,1):      
+                        if (not strcompare[j] in dict):
+                            dict[strcompare[j]]=strcompare[index2]
+
+                        else:
+                            if (not check[strcompare[j]]):
+                                dict[strcompare[j]]=strcompare[index2]
+                        if(abs(index2-index1)<=2):
+                            check[strcompare[j]]=True
+        i=i+1
+    strsave=strResult;
+    listResult=[]
+    # print(strResult)
+    ListMistake={}
+    
+    
+    if(len(strResult)>6):
+        for x in strResult:
+            if not x in dict:
+                strResult=strResult.replace(x,'')
+    else:
+        strResult=strResult
+        for x in strResult:
+            if not x in dict:
+                if x in ListMistake:
+                    strResult=strResult.replace(x,ListMistake.get(x))
+                else:
+                    strResult=strResult.replace(x,list(dict.keys())[0])
+    for y in strResult:
+            strResult=strResult.replace(y,dict[y])
+    # print("ket qua:"+strResult)
+    listResult.append(strResult)
+    strResult=strsave
+    # Ket thuc decode captcha______________________________________________________________________
+    # print(dict)
+    # check gần đúng-------------------------
+    # for x in strResult:
+    #     if not x in dict:
+    #         # print("x not in dict",x)
+    #         dict[x]=-1
+    #         for value in dict.values():
+    #             dict[x]=value
+    #             strResult=strsave
+    #             for y in strResult:
+    #                 strResult=strResult.replace(y,dict[y])
+    #             list.append(strResult)
+    #             strResult=strsave
+    #     else:
+    #         strResult=strResult.replace(x,dict[x])
+    # list.append(strResult)
+    index=0
+    # saveIndex[captchaImage]=index
+    # ------------------------------------------------
+    # print(dict)
+    # print("list:",list)
+    result = ''.join([i for i in strResult if i.isdigit()])
+    for item in listResult:
+        if not item.isdigit():
+            listResult.remove(item)
+    end=time.time()
+    # print("strcompare",strcompare)   
+    # saveCheck[captchaImage]=True
+    print("Result decode:",listResult[0])
+    # print(type(listResult[0]))
+    return listResult[0]
+def predict2():
     print(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
     keyEncrypt=int(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
     strings = datetime.now(timezone.utc).strftime("%d,%Y,%m,%H")

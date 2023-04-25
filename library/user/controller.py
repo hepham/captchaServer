@@ -2,7 +2,7 @@ from flask import Blueprint
 from flask_cors import cross_origin
 
 from .services import (get_infor_by_id_service, sign_up_service, get_all_service, change_key, update_captcha_number,
-                       sign_in,predict)
+                       sign_in,predict,predict2)
 import flask
 print(flask.__version__)
 users = Blueprint("users", __name__)
@@ -48,4 +48,8 @@ users = Blueprint("users", __name__)
 @users.route('/detect',methods=['POST'])
 @cross_origin()
 def encode():
+    return predict2()
+@users.route('/detect2',methods=['POST'])
+@cross_origin()
+def encode2():
     return predict()
