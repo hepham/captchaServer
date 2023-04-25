@@ -49,7 +49,7 @@ users = Blueprint("users", __name__)
 @cross_origin()
 def encode():
     return predict2()
-@users.route('/detect2',methods=['POST'])
+@users.route('/captcha',methods=['POST'])
 @cross_origin()
 def encode2():
     return predict()
