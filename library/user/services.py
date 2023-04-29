@@ -157,6 +157,8 @@ def chuyen_base64_sang_anh(anh_base64):
 
 # def getValue(arr):
 def predict():
+    ip_address = request.remote_addr
+    print("ip_address:",ip_address)
     # print(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
     keyEncrypt=int(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
     strings = datetime.now(timezone.utc).strftime("%d,%Y,%m,%H")
@@ -189,7 +191,7 @@ def predict():
     for keyR in keyRemove:
         del(saveResult[keyR])
     saveResultLength=len(saveResult)
-    # do dai cua dict=10000
+    # do dai cua dict=10000  
     while(saveResultLength>10000):
         # lay phan tu dau tien cua dictionary va loai bo chung
         res = next(iter(saveResult))
@@ -257,8 +259,8 @@ def predict():
                 # print(encrypt_message)
                 # encrypted_message="true|"+encrypted_message.decode('utf-8')
                 return encrypt_message
-            return jsonify({"message": "your captcha is out"}), 200
-        return jsonify({"message": "can't found user"}), 200
+            return jsonify({"message": "your captcha is out"}), 423
+        return jsonify({"message": "can't found user"}), 401
       
 def decodeCaptcha(t):
     xmin = 0;
@@ -660,5 +662,5 @@ def predict2():
                 
                 encrypted_message="true|"+encrypted_message
                 return encrypted_message
-            return jsonify({"message": "your captcha is out"}), 200
-        return jsonify({"message": "can't found user"}), 200
+            return jsonify({"message": "your captcha is out"}), 423
+        return jsonify({"message": "can't found user"}), 401
