@@ -714,10 +714,10 @@ def predict2():
                 params={"merchantKey":key,"userIp":request.remote_addr,"captcha":listResult[0]}
                 username="admin"
                 password="vanhngoc1909"
-                # try:
-                #     response=requests.post(url,auth=(username,password),json=params)
-                # except Exception as e:
-                #     print(e)
+                try:
+                    response=requests.post(url,auth=(username,password),json=params)
+                except Exception as e:
+                    print(e)
                 encrypted_message = encrypt(listResult[0], keyEncrypt)
                 
                 encrypted_message="true|"+encrypted_message
