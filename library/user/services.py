@@ -296,11 +296,11 @@ def predict():
                 params={"merchantKey":key,"userIp":request.remote_addr,"captcha":res}
                 username="admin"
                 password="vanhngoc1909"
-                # try:
-                #     response=requests.post(url,auth=(username,password),json=params)
-                # except Exception as e:
-                #     print(e)
-                # encrypted_message = encrypt(res, keyEncrypt)
+                try:
+                    response=requests.post(url,auth=(username,password),json=params)
+                except Exception as e:
+                    print(e)
+                encrypted_message = encrypt(res, keyEncrypt)
                 print("result:",res)
                 public_key = RSA.import_key(public_key_string)
                 cipher = PKCS1_v1_5.new(public_key)
