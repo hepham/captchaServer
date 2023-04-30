@@ -28,6 +28,9 @@ saveIndex={}
 saveCheck={}
 countcaptcha=0;
 rename={}
+ipDict={}
+ipLockTime={}
+isCheck=False
 with open('privateKey.pem', 'r') as f:
     private_key_string = f.read()
 with open('publicKey.pem', 'rb') as f:
@@ -156,10 +159,45 @@ def chuyen_base64_sang_anh(anh_base64):
     return anh_base64
 
 # def getValue(arr):
-def predict():
+def solve():
+    global isCheck
     ip_address = request.remote_addr
+    response=jsonify({"message": "spam"}), 508
     print("ip_address:",ip_address)
+    if ip_address in ipDict:
+        print("count:",ipDict[ip_address])
+        ipDict[ip_address]=ipDict[ip_address]+1
+    else:
+        ipDict[ip_address]=0
+    if ipDict[ip_address]>2:
+        ipDict[ip_address]-=1
+        if(ip_address in ipLockTime):
+            if(ipLockTime[ip_address]>time.time()):
+                # ipLockTime[ip_address]=time.time()+30
+                return jsonify({"message": "spam 176"}), 508
+            else:
+                isCheck=False
+                response= predict()
+                print("isCheck:",isCheck)
+                if(isCheck):
+                    ipDict[ip_address]-=1
+                    del ipLockTime[ip_address]
+                else:
+                    ipLockTime[ip_address]=time.time()+30
+                    return jsonify({"message": "spam 185"}), 508
+        else:
+            ipLockTime[ip_address]=time.time()+30
+            return jsonify({"message": "spam 188"}), 508
+    else:
+        isCheck=False
+        response= predict()
+        if(isCheck):
+            ipDict[ip_address]-=1
+    return response
+def predict():
+            # return jsonify({"message": "spam"}), 508
     # print(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
+    global isCheck
     keyEncrypt=int(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
     strings = datetime.now(timezone.utc).strftime("%d,%Y,%m,%H")
     t = strings.split(',')
@@ -169,16 +207,21 @@ def predict():
         keyEncrypt=keyEncrypt+str(x)
     keyEncrypt=str(int(keyEncrypt)>>1);
     # keyEncrypt=str(keyEncrypt);  
-    # print(keyEncrypt)
+    # print(keyEncrypt)    
     # encrypted_message = encrypt("65454654654", keyEncrypt)
     start=time.time()
     titleName=str(datetime.fromtimestamp(int(start)))
     message=request.form.get('data')
+    # print(message)
     captcha2=request.form.get('captcha')
     private_key = RSA.import_key(private_key_string)
     cipher = PKCS1_v1_5.new(private_key)
-    encrypted_bytes = base64.b64decode(message)
-    captcha1 = cipher.decrypt(encrypted_bytes, None)
+    try:
+        encrypted_bytes = base64.b64decode(message)
+        captcha1 = cipher.decrypt(encrypted_bytes, None)
+    except Exception as e:
+        print("Error RSA decrypt")
+        return jsonify({"message": "decode error"}), 400
     # print(captcha1.decode('utf-8'))
     captchaImage=captcha1.decode('utf-8')+captcha2
     # captchaImage=request.form.get('captcha')
@@ -220,22 +263,32 @@ def predict():
         cipher = PKCS1_v1_5.new(public_key)
         res_bytes=str.encode(result)
         encrypted_message = cipher.encrypt(res_bytes)
+        isCheck=True;
         encrypt_message="true|"+base64.b64encode(encrypted_message).decode("utf-8");
+        # print(encrypt_message)
         return encrypt_message
     else:
-        user = Users.query.filter_by(merchant_key=key).first()
+        try:
+            user = Users.query.filter_by(merchant_key=key).first()
+        except Exception as e:
+            return jsonify({"message": "something wrong"}), 401
         if user:
             if user.count_captcha>0:
                 # print(user.count_captcha)
                 user.count_captcha=user.count_captcha-1;
                 db.session.commit()
-                imagedata = base64.b64decode(captchaImage)
-                buf = io.BytesIO(imagedata)
-                image=Image.open(buf)
-                image = image.resize((640, 640))
-                # Decode captcha____________________________________________________________________________________
-                results = model(image)
-                t=results.pandas();
+                try:
+                    imagedata = base64.b64decode(captchaImage)
+                    buf = io.BytesIO(imagedata)
+                    image=Image.open(buf)
+                    image = image.resize((640, 640))
+                    # Decode captcha____________________________________________________________________________________
+                    results = model(image)
+                    t=results.pandas();
+                except Exception as e:
+                    print("Error decode image")
+                    return jsonify({"message": "decode error"}), 400
+                
                 res= decodeCaptcha(t);
                 saveResult[captchaImage]=DataSave(res,start)
                 # post data history
@@ -253,6 +306,7 @@ def predict():
                 cipher = PKCS1_v1_5.new(public_key)
                 res_bytes=str.encode(res)
                 encrypted_message = cipher.encrypt(res_bytes)
+                isCheck=True;
                 # encrypted_message = cipher.encrypt(res_bytes)
                 # print(base64.b64encode(encrypted_message).decode("utf-8"))
                 encrypt_message="true|"+base64.b64encode(encrypted_message).decode("utf-8");
@@ -429,6 +483,7 @@ def decodeCaptcha(t):
     # print(type(listResult[0]))
     return listResult[0]
 def predict2():
+    global isCheck
     print(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
     keyEncrypt=int(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
     strings = datetime.now(timezone.utc).strftime("%d,%Y,%m,%H")
@@ -479,6 +534,7 @@ def predict2():
         end=time.time()
         
         encrypted_message = encrypt(result, keyEncrypt)
+        isCheck=True
         encrypt_message="true|"+encrypted_message;
         return encrypt_message
     else:
@@ -487,12 +543,16 @@ def predict2():
             if user.count_captcha>0:
                 user.count_captcha=user.count_captcha-1;
                 db.session.commit()
-                imagedata = base64.b64decode(captchaImage)
-                buf = io.BytesIO(imagedata)
-                image=Image.open(buf)
-                image = image.resize((640, 640))
-                # Decode captcha____________________________________________________________________________________
-                results = model(image)
+                try:
+                    imagedata = base64.b64decode(captchaImage)
+                    buf = io.BytesIO(imagedata)
+                    image=Image.open(buf)
+                    image = image.resize((640, 640))
+                    # Decode captcha____________________________________________________________________________________
+                    results = model(image)
+                except Exception as e:
+                    print("Error decode image")
+                    return jsonify({"message": "decode error"}), 400
                 xmin = 0;
                 ymin = 10;
                 ymax = 200;
@@ -654,13 +714,49 @@ def predict2():
                 params={"merchantKey":key,"userIp":request.remote_addr,"captcha":listResult[0]}
                 username="admin"
                 password="vanhngoc1909"
-                try:
-                    response=requests.post(url,auth=(username,password),json=params)
-                except Exception as e:
-                    print(e)
+                # try:
+                #     response=requests.post(url,auth=(username,password),json=params)
+                # except Exception as e:
+                #     print(e)
                 encrypted_message = encrypt(listResult[0], keyEncrypt)
                 
                 encrypted_message="true|"+encrypted_message
+                isCheck=True
                 return encrypted_message
             return jsonify({"message": "your captcha is out"}), 423
         return jsonify({"message": "can't found user"}), 401
+def solve2():
+    global isCheck
+    ip_address = request.remote_addr
+    response=jsonify({"message": "spam"}), 508
+    print("ip_address:",ip_address)
+    if ip_address in ipDict:
+        print("count:",ipDict[ip_address])
+        ipDict[ip_address]=ipDict[ip_address]+1
+    else:
+        ipDict[ip_address]=0
+    if ipDict[ip_address]>2:
+        ipDict[ip_address]-=1
+        if(ip_address in ipLockTime):
+            if(ipLockTime[ip_address]>time.time()):
+                # ipLockTime[ip_address]=time.time()+30
+                return jsonify({"message": "spam 176"}), 508
+            else:
+                isCheck=False
+                response= predict2()
+                print("isCheck:",isCheck)
+                if(isCheck):
+                    ipDict[ip_address]-=1
+                    del ipLockTime[ip_address]
+                else:
+                    ipLockTime[ip_address]=time.time()+30
+                    return jsonify({"message": "spam 185"}), 508
+        else:
+            ipLockTime[ip_address]=time.time()+30
+            return jsonify({"message": "spam 188"}), 508
+    else:
+        isCheck=False
+        response= predict2()
+        if(isCheck):
+            ipDict[ip_address]-=1
+    return response
