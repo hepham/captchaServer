@@ -174,7 +174,7 @@ def solve():
         if(ip_address in ipLockTime):
             if(ipLockTime[ip_address]>time.time()):
                 # ipLockTime[ip_address]=time.time()+30
-                return jsonify({"message": "spam 176"}), 508
+                return jsonify({"message": "spam"}), 508
             else:
                 isCheck=False
                 response= predict()
@@ -183,11 +183,11 @@ def solve():
                     ipDict[ip_address]-=1
                     del ipLockTime[ip_address]
                 else:
-                    ipLockTime[ip_address]=time.time()+30
-                    return jsonify({"message": "spam 185"}), 508
+                    ipLockTime[ip_address]=time.time()+60
+                    return jsonify({"message": "spam"}), 508
         else:
-            ipLockTime[ip_address]=time.time()+30
-            return jsonify({"message": "spam 188"}), 508
+            ipLockTime[ip_address]=time.time()+60
+            return jsonify({"message": "spam"}), 508
     else:
         isCheck=False
         response= predict()
@@ -740,7 +740,7 @@ def solve2():
         if(ip_address in ipLockTime):
             if(ipLockTime[ip_address]>time.time()):
                 # ipLockTime[ip_address]=time.time()+30
-                return jsonify({"message": "spam 176"}), 508
+                return jsonify({"message": "spam"}), 508
             else:
                 isCheck=False
                 response= predict2()
@@ -749,11 +749,11 @@ def solve2():
                     ipDict[ip_address]-=1
                     del ipLockTime[ip_address]
                 else:
-                    ipLockTime[ip_address]=time.time()+30
-                    return jsonify({"message": "spam 185"}), 508
+                    ipLockTime[ip_address]=time.time()+60
+                    return jsonify({"message": "spam "}), 508
         else:
-            ipLockTime[ip_address]=time.time()+30
-            return jsonify({"message": "spam 188"}), 508
+            ipLockTime[ip_address]=time.time()+60
+            return jsonify({"message": "spam"}), 508
     else:
         isCheck=False
         response= predict2()
