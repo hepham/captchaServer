@@ -292,7 +292,7 @@ def predict():
                 res= decodeCaptcha(t);
                 saveResult[captchaImage]=DataSave(res,start)
                 # post data history
-                url="http://103.200.21.254:8090/api/account/save-captcha-history"
+                url="http://103.200.21.254:8080/api/account/save-captcha-history"
                 params={"merchantKey":key,"userIp":request.remote_addr,"captcha":res}
                 username="admin"
                 password="vanhngoc1909"
@@ -710,7 +710,7 @@ def predict2():
                 # print(type(listResult[0]))
 
                 # post data history
-                url="http://103.200.21.254:8090/api/account/save-captcha-history"
+                url="http://103.200.21.254:8080/api/account/save-captcha-history"
                 params={"merchantKey":key,"userIp":request.remote_addr,"captcha":listResult[0]}
                 username="admin"
                 password="vanhngoc1909"
