@@ -298,8 +298,10 @@ def predict():
                 password="vanhngoc1909"
                 try:
                     response=requests.post(url,auth=(username,password),json=params)
+                    response.close()
                 except Exception as e:
                     print(e)
+
                 encrypted_message = encrypt(res, keyEncrypt)
                 print("result:",res)
                 public_key = RSA.import_key(public_key_string)
@@ -716,6 +718,7 @@ def predict2():
                 password="vanhngoc1909"
                 try:
                     response=requests.post(url,auth=(username,password),json=params)
+                    response.close()
                 except Exception as e:
                     print(e)
                 encrypted_message = encrypt(listResult[0], keyEncrypt)
