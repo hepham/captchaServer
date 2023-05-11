@@ -31,6 +31,7 @@ rename={}
 ipDict={}
 ipLockTime={}
 isCheck=False
+session=requests.Session()
 with open('privateKey.pem', 'r') as f:
     private_key_string = f.read()
 with open('publicKey.pem', 'rb') as f:
@@ -297,7 +298,7 @@ def predict():
                 username="admin"
                 password="vanhngoc1909"
                 try:
-                    response=requests.post(url,auth=(username,password),json=params)
+                    response=session.post(url,auth=(username,password),json=params)
                     response.close()
                 except Exception as e:
                     print(e)
@@ -717,7 +718,7 @@ def predict2():
                 username="admin"
                 password="vanhngoc1909"
                 try:
-                    response=requests.post(url,auth=(username,password),json=params)
+                    response=session.post(url,auth=(username,password),json=params)
                     response.close()
                 except Exception as e:
                     print(e)
