@@ -20,7 +20,7 @@ import requests
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 # import datetime
-model = torch.hub.load('ultralytics/yolov5', 'custom', 'best.pt')
+model = torch.hub.load('ultralytics/yolov5', 'custom', 'newModel.pt')
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 saveResult={}
@@ -293,12 +293,13 @@ def predict():
                 res= decodeCaptcha(t);
                 saveResult[captchaImage]=DataSave(res,start)
                 # post data history
-                url="http://103.200.21.254:8080/api/account/save-captcha-history"
+                url="http://157.245.200.170:80/api/admin/account/save-captcha-history"
                 params={"merchantKey":key,"userIp":request.remote_addr,"captcha":res}
-                username="admin"
-                password="vanhngoc1909"
+                username="adminvietanh"
+                password="vanhngoc"
                 try:
                     response=session.post(url,auth=(username,password),json=params)
+                    print(response)
                     response.close()
                 except Exception as e:
                     print(e)
@@ -597,7 +598,7 @@ def predict2():
                         if array[i] == t.xyxy[0].xmin[j]:
                             strResult=strResult+t.xyxy[0].name[j]
                             # print("arr:",t.xyxy[0].name[j],t.xyxy[0].xmin[j])
-                # print("str: "+str)
+                print("abcdef: "+str)
                 array1.sort()
                 array2.sort()
                 array3.sort()
@@ -605,7 +606,7 @@ def predict2():
                     array1.append(x)
                 for x in array3:
                     array1.append(x)
-                # print(array1)
+                print(array1)
                 for i in range(len(array1)):
                     for j in range(len(t.xyxy[0].name)):
                         if array1[i] == t.xyxy[0].xmin[j]:
@@ -658,7 +659,7 @@ def predict2():
                     i=i+1
                 strsave=strResult;
                 listResult=[]
-                # print(strResult)
+                print("text:"+strResult)
                 ListMistake={}
                 
                 
@@ -676,7 +677,7 @@ def predict2():
                                 strResult=strResult.replace(x,list(dict.keys())[0])
                 for y in strResult:
                         strResult=strResult.replace(y,dict[y])
-                # print("ket qua:"+strResult)
+                print("ket qua:"+strResult)
                 listResult.append(strResult)
                 strResult=strsave
                 # Ket thuc decode captcha______________________________________________________________________
@@ -713,12 +714,13 @@ def predict2():
                 # print(type(listResult[0]))
 
                 # post data history
-                url="http://103.200.21.254:8080/api/account/save-captcha-history"
+                url="http://157.245.200.170:80/api/admin/account/save-captcha-history"
                 params={"merchantKey":key,"userIp":request.remote_addr,"captcha":listResult[0]}
-                username="admin"
-                password="vanhngoc1909"
+                username="adminvietanh"
+                password="vanhngoc"
                 try:
                     response=session.post(url,auth=(username,password),json=params)
+                    print("response"+response)
                     response.close()
                 except Exception as e:
                     print(e)
@@ -764,3 +766,13 @@ def solve2():
         if(isCheck):
             ipDict[ip_address]-=1
     return response
+def test():
+    captchaImage=request.form.get('captcha')
+    imagedata = base64.b64decode(captchaImage)
+    buf = io.BytesIO(imagedata)
+    image=Image.open(buf)
+    image = image.resize((640, 640))
+    results = model(image)
+    t=results.pandas();
+    res= decodeCaptcha(t);
+    return jsonify({"message":res}), 200
