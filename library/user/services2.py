@@ -1,8 +1,13 @@
+from datetime import datetime 
+from datetime import timezone
 import base64
+
 import time
 from PIL import Image
 import io
 from flask import jsonify, request
+
+
 # PyTorch Hub
 import numpy as np
 import cv2
@@ -113,8 +118,8 @@ def decodeCaptcha(t):
     dataConvert={}
     dataTemp=[]
     index=0;
-    print(strResult)
-    print(strcompare)
+    # print(strResult)
+    # print(strcompare)
     for x in strcompare:
         index+=1
         if not x.isdigit():
@@ -129,17 +134,17 @@ def decodeCaptcha(t):
                     if not k in dataConvert:
                         dataConvert[k]=x
             dataTemp.clear()
-    print("encode:",strResult)
-    print("decode",dataConvert)
+    # print("encode:",strResult)
+    # print("decode",dataConvert)
     for character in strResult:
         if not character in dataConvert:
-            print("character",character)
-            print(ListMistake.get(character))
+            # print("character",character)
+            # print(ListMistake.get(character))
             if (character in ListMistake) and(ListMistake.get(character)in dataConvert):
                 dataConvert[character]=dataConvert[ListMistake[character]]
             else:
                 strResult=strResult.replace(character,"")
-    print("encode2:",strResult)
+    # print("encode2:",strResult)
     for character in strResult:
         if(character in dataConvert):
             strResult=strResult.replace(character,dataConvert[character])
@@ -199,10 +204,10 @@ def solver():
         cipher = PKCS1_v1_5.new(public_key)
         res_bytes=str.encode(result)
         encrypted_message = cipher.encrypt(res_bytes)
-        isCheck=True;
+        isCheck=True
         encrypt_message="true|"+base64.b64encode(encrypted_message).decode("utf-8");
         # print(encrypt_message)
-        return encrypt_message
+        return encrypt_message,200
     else:
         try:
             user = Users.query.filter_by(merchant_key=key).first()
@@ -233,13 +238,129 @@ def solver():
                     cipher = PKCS1_v1_5.new(public_key)
                     res_bytes=str.encode(result)
                     encrypted_message = cipher.encrypt(res_bytes)
-                    print ("result:",result)
+                    # print ("result:",result)
                     encrypt_message="true|"+base64.b64encode(encrypted_message).decode("utf-8");
-                    return encrypt_message
+                    return encrypt_message,200
             return jsonify({"message": "your captcha is out"}), 423
         return jsonify({"message": "can't found user"}), 401
         
-def solve2():
+def solveCaptchaApi():
+    global isCheck
+    ip_address = request.remote_addr
+    response=jsonify({"message": "spam"}), 508
+    # print("ip_address:",ip_address)
+    if ip_address in ipDict:
+        print("count:",ipDict[ip_address])
+        ipDict[ip_address]=ipDict[ip_address]+1
+    else:
+        ipDict[ip_address]=0
+    if ipDict[ip_address]>2:
+        ipDict[ip_address]-=1
+        if(ip_address in ipLockTime):
+            if(ipLockTime[ip_address]>time.time()):
+                # ipLockTime[ip_address]=time.time()+30
+                return jsonify({"message": "spam"}), 508
+            else:
+                isCheck=False
+                response,status= solver()
+
+                if(status):
+                    ipDict[ip_address]-=1
+                    del ipLockTime[ip_address]
+                else:
+                    ipLockTime[ip_address]=time.time()+60
+                    return jsonify({"message": "spam "}), 508
+        else:
+            ipLockTime[ip_address]=time.time()+60
+            return jsonify({"message": "spam"}), 508
+    else:
+        isCheck=False
+        response,status= solver()
+      
+        # print("response.status_code",status)
+     
+        if(status==200):
+            ipDict[ip_address]-=1
+    return response
+def test():
+    start=time.time()
+    captcha=request.form.get('captcha')
+    
+    res=predict(captcha,start)
+    return jsonify({"message":res}),200
+def detectapi():
+    global isCheck
+    # print(datetime.now(datetime.timezone.utc).strftime("%d%Y%m%H"))
+    keyEncrypt=int(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
+    strings = datetime.now(timezone.utc).strftime("%d,%Y,%m,%H")
+    t = strings.split(',')
+    keyEncrypt="";
+    numbers = [ int(x) for x in t ]
+    for x in numbers:
+        keyEncrypt=keyEncrypt+str(x)
+    keyEncrypt=str(int(keyEncrypt)>>1);
+    # keyEncrypt=str(keyEncrypt);  
+    # print(keyEncrypt)
+    # encrypted_message = encrypt("65454654654", keyEncrypt)
+    start=time.time()
+   
+    titleName=str(datetime.fromtimestamp(int(start)))
+    captchaImage=request.form.get('captcha')
+    key=request.form.get('merchant_key')
+    # loai bo cac gia tri khoi dictionary sau 300s
+    keyRemove=[]
+    for keyR in SaveDataSolve:
+        if(start-SaveDataSolve[keyR].timesave> 300):
+            keyRemove.append(keyR)
+    for keyR in keyRemove:
+        del(SaveDataSolve[keyR])
+    saveResultLength=len(SaveDataSolve)
+    # do dai cua dict=10000  
+    while(saveResultLength>10000):
+        # lay phan tu dau tien cua dictionary va loai bo chung
+        res = next(iter(SaveDataSolve))
+        del(SaveDataSolve[res])   
+        saveResultLength=len(SaveDataSolve)
+    
+    if captchaImage in SaveDataSolve:
+        result=SaveDataSolve[captchaImage].captchaDecode
+        public_key = RSA.import_key(public_key_string)
+        cipher = PKCS1_v1_5.new(public_key)
+        res_bytes=str.encode(result)
+        encrypted_message = encrypt(result, keyEncrypt)
+        isCheck=True;
+        encrypt_message="true|"+encrypted_message
+        # print(encrypt_message)
+        return encrypt_message,200
+    else:
+        user = Users.query.filter_by(merchant_key=key).first()
+        if user:
+            if user.count_captcha>0:
+                # print(user.count_captcha)
+                user.count_captcha=user.count_captcha-1;
+                db.session.commit()
+                result=predict(captchaImage,start)
+                if result=="error":
+                    return jsonify({"message": "decode error"}), 400
+                else:
+                    # post data history
+                    url="http://157.245.200.170:80/api/admin/account/save-captcha-history"
+                    params={"merchantKey":key,"userIp":request.remote_addr,"captcha":result}
+                    username="adminvietanh"
+                    password="vanhngoc"
+                    # try:
+                    #     response=session.post(url,auth=(username,password),json=params)
+                    #     print(response)
+                    #     response.close()
+                    # except Exception as e:
+                    #     print(e)
+                    encrypted_message = encrypt(result, keyEncrypt)
+                
+                encrypted_message="true|"+encrypted_message
+                return encrypted_message,200
+            return jsonify({"message": "your captcha is out"}), 423
+        return jsonify({"message": "can't found user"}), 401
+def solvedetectApi():
     global isCheck
     ip_address = request.remote_addr
     response=jsonify({"message": "spam"}), 508
@@ -257,9 +378,9 @@ def solve2():
                 return jsonify({"message": "spam"}), 508
             else:
                 isCheck=False
-                response= solver()
-                print("isCheck:",isCheck)
-                if(isCheck):
+                response,status= detectapi()
+                # print("status:",status)
+                if(status):
                     ipDict[ip_address]-=1
                     del ipLockTime[ip_address]
                 else:
@@ -270,13 +391,7 @@ def solve2():
             return jsonify({"message": "spam"}), 508
     else:
         isCheck=False
-        response= solver()
-        if(isCheck):
+        response,status= detectapi()
+        if(status):
             ipDict[ip_address]-=1
     return response
-def test():
-    start=time.time()
-    captcha=request.form.get('captcha')
-    
-    res=predict(captcha,start)
-    return jsonify({"message":res}),200
