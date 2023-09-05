@@ -27,6 +27,7 @@ users_schema = UserSchema(many=True)
 alphabet={"and":"&","acong":"@","thang":"#","per":"%","dolar":"$"}
 ListMistake={"j":"l","l":"j","6":"s","s":"6","2":"z","z":"2","z":"7","7":"z","e":"f","f":"e"}
 SaveDataSolve={}
+saveCheck={}
 ipDict={}
 ipLockTime={}
 session=requests.Session()
@@ -199,6 +200,17 @@ def solver():
         saveResultLength=len(SaveDataSolve)
     
     if captchaImage in SaveDataSolve:
+        if saveCheck[captchaImage]:
+             start=time.time()
+             titleName=str(datetime.fromtimestamp(int(start)))
+            #save file wrong
+             #titleName=titleName+".txt"
+             #titleName=titleName.replace(":"," ")
+             #titleName=titleName.replace("'","")
+             #file=open(titleName,'w')
+             #file.write(captchaImage)
+             #file.close()
+             saveCheck[captchaImage]=False
         result=SaveDataSolve[captchaImage].captchaDecode
         public_key = RSA.import_key(public_key_string)
         cipher = PKCS1_v1_5.new(public_key)
@@ -223,17 +235,17 @@ def solver():
                     return jsonify({"message": "decode error"}), 400
                 else:
                     # post data history
-                    url="http://157.245.200.170:80/api/admin/account/save-captcha-history"
+                    url="http://157.230.245.23:80/api/admin/account/save-captcha-history"
                     params={"merchantKey":key,"userIp":request.remote_addr,"captcha":result}
                     username="adminvietanh"
                     password="vanhngoc"
-                    # try:
-                    #     response=session.post(url,auth=(username,password),json=params)
-                    #     print(response)
-                    #     response.close()
-                    # except Exception as e:
-                    #     print(e)
-                    
+                    try:
+                         response=session.post(url,auth=(username,password),json=params)
+                         print(response)
+                         response.close()
+                    except Exception as e:
+                         print(e)
+                    saveCheck[captchaImage]=True        
                     public_key = RSA.import_key(public_key_string)
                     cipher = PKCS1_v1_5.new(public_key)
                     res_bytes=str.encode(result)
@@ -344,16 +356,16 @@ def detectapi():
                     return jsonify({"message": "decode error"}), 400
                 else:
                     # post data history
-                    url="http://157.245.200.170:80/api/admin/account/save-captcha-history"
+                    url="http://157.230.245.23:80/api/admin/account/save-captcha-history"
                     params={"merchantKey":key,"userIp":request.remote_addr,"captcha":result}
                     username="adminvietanh"
                     password="vanhngoc"
-                    # try:
-                    #     response=session.post(url,auth=(username,password),json=params)
-                    #     print(response)
-                    #     response.close()
-                    # except Exception as e:
-                    #     print(e)
+                    try:
+                         response=session.post(url,auth=(username,password),json=params)
+                         print(response)
+                         response.close()
+                    except Exception as e:
+                         print(e)
                     encrypted_message = encrypt(result, keyEncrypt)
                 
                 encrypted_message="true|"+encrypted_message
