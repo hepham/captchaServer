@@ -6,7 +6,7 @@ import time
 from PIL import Image
 import io
 from flask import jsonify, request
-
+import os
 
 # PyTorch Hub
 import numpy as np
@@ -28,6 +28,7 @@ alphabet={"and":"&","acong":"@","thang":"#","per":"%","dolar":"$"}
 ListMistake={"j":"l","l":"j","6":"s","s":"6","2":"z","z":"2","z":"7","7":"z","e":"f","f":"e"}
 SaveDataSolve={}
 ipDict={}
+saveCheck={}
 ipLockTime={}
 session=requests.Session()
 file=open("privateKey.pem",'r')
@@ -45,6 +46,10 @@ finally:
     
 # with open('publicKey.pem', 'rb') as f:
 #     public_key_string = f.read()
+folderSaveImage="Image"
+if not os.path.exists(folderSaveImage) :
+    os.makedirs(folderSaveImage)
+
 def base64StringToImage(anh_base64):
     try:
         anh_base64 = np.fromstring(base64.b64decode(anh_base64), dtype=np.uint8)
@@ -199,7 +204,20 @@ def solver():
         saveResultLength=len(SaveDataSolve)
     
     if captchaImage in SaveDataSolve:
+         # save file
+        
         result=SaveDataSolve[captchaImage].captchaDecode
+        if captchaImage in saveCheck and saveCheck[captchaImage]:
+            #save file wrong
+            titleName=str(datetime.fromtimestamp(int(start)))
+            titleName=titleName+"-"+result+".txt"
+            titleName=titleName.replace(":"," ")
+            titleName=titleName.replace("'","")
+            with open(f"image/{titleName}","w")as f:
+                f.write(captchaImage)
+            saveCheck[captchaImage]=False
+        if captchaImage not in saveCheck:
+            saveCheck[captchaImage]=True
         public_key = RSA.import_key(public_key_string)
         cipher = PKCS1_v1_5.new(public_key)
         res_bytes=str.encode(result)
