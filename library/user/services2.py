@@ -213,8 +213,8 @@ def solver():
             titleName=titleName+"-"+result+".txt"
             titleName=titleName.replace(":"," ")
             titleName=titleName.replace("'","")
-            with open(f"image/{titleName}","w")as f:
-                f.write(captchaImage)
+            # with open(f"image/{titleName}","w")as f:
+            #     f.write(captchaImage)
             saveCheck[captchaImage]=False
         if captchaImage not in saveCheck:
             saveCheck[captchaImage]=True
