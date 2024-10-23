@@ -13,5 +13,5 @@ pyyaml
 tqdm
 matplotlib
 seaborn
-dotenv
+python-dotenv
 requests

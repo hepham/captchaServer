@@ -378,6 +378,79 @@ def detectapi():
                 return encrypted_message,200
             return jsonify({"message": "your captcha is out"}), 423
         return jsonify({"message": "can't found user"}), 401
+def detectapiV2():
+    global isCheck
+    # print(datetime.now(datetime.timezone.utc).strftime("%d%Y%m%H"))
+    keyEncrypt=int(datetime.now(timezone.utc).strftime("%d%Y%m%H"))
+    strings = datetime.now(timezone.utc).strftime("%d,%m,%H")
+    print(strings)
+    t = strings.split(',')
+    keyEncrypt="";
+    numbers = [ int(x) for x in t ]
+    for x in numbers:
+        keyEncrypt=keyEncrypt+str(x)
+    keyEncrypt=str(int(keyEncrypt)>>1);
+    # keyEncrypt=str(keyEncrypt);  
+    # print(keyEncrypt)
+    # encrypted_message = encrypt("65454654654", keyEncrypt)
+    start=time.time()
+   
+    titleName=str(datetime.fromtimestamp(int(start)))
+    captchaImage=request.form.get('captcha')
+    key=request.form.get('merchant_key')
+    # loai bo cac gia tri khoi dictionary sau 300s
+    keyRemove=[]
+    for keyR in SaveDataSolve:
+        if(start-SaveDataSolve[keyR].timesave> 300):
+            keyRemove.append(keyR)
+    for keyR in keyRemove:
+        del(SaveDataSolve[keyR])
+    saveResultLength=len(SaveDataSolve)
+    # do dai cua dict=10000  
+    while(saveResultLength>10000):
+        # lay phan tu dau tien cua dictionary va loai bo chung
+        res = next(iter(SaveDataSolve))
+        del(SaveDataSolve[res])   
+        saveResultLength=len(SaveDataSolve)
+    
+    if captchaImage in SaveDataSolve:
+        result=SaveDataSolve[captchaImage].captchaDecode
+        public_key = RSA.import_key(public_key_string)
+        cipher = PKCS1_v1_5.new(public_key)
+        res_bytes=str.encode(result)
+        encrypted_message = encrypt(result, keyEncrypt)
+        isCheck=True;
+        encrypt_message="true|"+encrypted_message
+        # print(encrypt_message)
+        return encrypt_message,200
+    else:
+        user = Users.query.filter_by(merchant_key=key).first()
+        if user:
+            if user.count_captcha>0:
+                # print(user.count_captcha)
+                user.count_captcha=user.count_captcha-1;
+                db.session.commit()
+                result=predict(captchaImage,start)
+                if result=="error":
+                    return jsonify({"message": "decode error"}), 400
+                else:
+                    # post data history
+                    url="http://157.245.200.170:80/api/admin/account/save-captcha-history"
+                    params={"merchantKey":key,"userIp":request.remote_addr,"captcha":result}
+                    username="adminvietanh"
+                    password="vanhngoc"
+                    # try:
+                    #     response=session.post(url,auth=(username,password),json=params)
+                    #     print(response)
+                    #     response.close()
+                    # except Exception as e:
+                    #     print(e)
+                    encrypted_message = encrypt(result, keyEncrypt)
+                
+                encrypted_message="true|"+encrypted_message
+                return encrypted_message,200
+            return jsonify({"message": "your captcha is out"}), 423
+        return jsonify({"message": "can't found user"}), 401
 def solvedetectApi():
     global isCheck
     ip_address = request.remote_addr
@@ -410,6 +483,41 @@ def solvedetectApi():
     else:
         isCheck=False
         response,status= detectapi()
+        if(status):
+            ipDict[ip_address]-=1
+    return response
+def solvedetectApiV2():
+    global isCheck
+    ip_address = request.remote_addr
+    response=jsonify({"message": "spam"}), 508
+    # print("ip_address:",ip_address)
+    if ip_address in ipDict:
+        # print("count:",ipDict[ip_address])
+        ipDict[ip_address]=ipDict[ip_address]+1
+    else:
+        ipDict[ip_address]=0
+    if ipDict[ip_address]>2:
+        ipDict[ip_address]-=1
+        if(ip_address in ipLockTime):
+            if(ipLockTime[ip_address]>time.time()):
+                # ipLockTime[ip_address]=time.time()+30
+                return jsonify({"message": "spam"}), 508
+            else:
+                isCheck=False
+                response,status= detectapiV2()
+                # print("status:",status)
+                if(status):
+                    ipDict[ip_address]-=1
+                    del ipLockTime[ip_address]
+                else:
+                    ipLockTime[ip_address]=time.time()+60
+                    return jsonify({"message": "spam "}), 508
+        else:
+            ipLockTime[ip_address]=time.time()+60
+            return jsonify({"message": "spam"}), 508
+    else:
+        isCheck=False
+        response,status= detectapiV2()
         if(status):
             ipDict[ip_address]-=1
     return response
