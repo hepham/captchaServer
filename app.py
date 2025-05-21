@@ -15,7 +15,7 @@ def create_db(app):
     mydb=mysql.connector.connect(
         host="43.228.213.30",
         user="captcha_web_prod",
-        passwd="5hb6EFYGtCeAdWPc",
+        passwd="NEiB56LhGZwG7c56",
         database="captcha_web_prod"
     )
 
@@ -29,10 +29,10 @@ def create_db(app):
 def create_app(config_file="library/config.py"):
     app = Flask(__name__)
     CORS(app)
-    app.config["SQLALCHEMY_DATABASE_URI"]= 'mysql+pymysql://captcha_web_prod:5hb6EFYGtCeAdWPc@43.228.213.30/captcha_web_prod'
+    app.config["SQLALCHEMY_DATABASE_URI"]= 'mysql+pymysql://captcha_web_prod:NEiB56LhGZwG7c56@43.228.213.30/captcha_web_prod'
     db.init_app(app)
     ma.init_app(app)
-    app.config.from_pyfile(config_file)
+    # app.config.from_pyfile(config_file)
     # create_db(app)
     app.register_blueprint(users)
     return app
