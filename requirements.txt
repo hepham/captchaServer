@@ -1,17 +1,21 @@
-flask>=2.2.5
+Flask==2.2.5
 Flask-Cors==3.0.10
 flask-marshmallow==0.14.0
-Flask-SQLAlchemy==2.5.1
-opencv-python
-numpy
-Pillow
-torchvision 
-pandas
-ipython
-psutil
-pyyaml
-tqdm
-matplotlib
-seaborn
-python-dotenv
-requests
+Flask-SQLAlchemy====1.4.49
+marshmallow==3.19.0
+marshmallow-sqlalchemy==1.4.2
+mysql-connector-python==9.3.0
+pillow==11.2.1
+torch== 2.6.0
+torchvision==0.21.0
+tqdm == 4.67.1
+requests== 2.32.3
+psutil==7.0.0
+numpy == 2.2.5
+opencv-python==4.11.0.86
+matplotlib == 3.10.1
+APScheduler ==  3.11.0
+python-dotenv == 1.1.0
+seaborn == 0.13.2
+pycryptodome-3.23.0
+cryptography
